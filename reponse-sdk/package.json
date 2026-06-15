@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "generate:sdk": "openapi-ts",
-    "build": "pnpm run generate:sdk && tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "prepublishOnly": "pnpm run build"
   },
