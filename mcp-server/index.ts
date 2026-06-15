@@ -18,7 +18,7 @@ if (!API_KEY) {
 const server = new Server(
   {
     name: "reponse-commerce-mcp",
-    version: "1.0.0",
+    version: "0.1.0",
   },
   {
     capabilities: {
@@ -714,6 +714,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (name === "list_tickets") {
       const params = new URLSearchParams();
       if (typeof args?.status === "string") params.set("status", args.status);
+      if (typeof args?.category === "string") params.set("category", args.category);
       if (typeof args?.customer_email === "string") params.set("customer_email", args.customer_email);
       if (typeof args?.limit === "number") params.set("limit", args.limit.toString());
       const data = await fetchFromApi(`/v1/tickets?${params.toString()}`);

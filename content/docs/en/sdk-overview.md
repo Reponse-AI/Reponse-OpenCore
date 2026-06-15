@@ -13,7 +13,7 @@ Reponse provides official SDKs and tools to integrate the API into your stack. T
 | --- | --- | --- |
 | `@reponseai/sdk` | Server-side and full-stack TypeScript | `npm install @reponseai/sdk` |
 | `@reponseai/react` | React UI data fetching (SWR-powered) | `npm install @reponseai/react` |
-| `@reponseai/mcp-server` | Connect AI agents via Model Context Protocol | `npm install @reponseai/mcp-server` |
+| `@reponseai/mcp` | Connect AI agents via Model Context Protocol | `npm install @reponseai/mcp` |
 
 ## Quick Start — TypeScript SDK
 
@@ -67,10 +67,10 @@ function ProductList() {
 The MCP server lets AI agents (Claude, GPT, custom agents) access your Reponse workspace as a tool:
 
 ```bash
-npx @reponseai/mcp-server --api-key rp_live_abc123...
+REPONSE_API_KEY=rp_live_abc123... npx @reponseai/mcp
 ```
 
-The server exposes tools like `list_products`, `get_product`, `search_catalog`, and `send_chat_message` over the Model Context Protocol.
+The server exposes 35 tools like `list_products`, `create_cart`, `fulfill_order`, and `create_checkout` over the Model Context Protocol.
 
 ## Supported Platforms
 

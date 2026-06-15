@@ -24,7 +24,7 @@ Add the Reponse MCP server to your client configuration. For **Claude Desktop**,
   "mcpServers": {
     "reponse": {
       "command": "npx",
-      "args": ["-y", "@reponseai/mcp-server"],
+      "args": ["-y", "@reponseai/mcp"],
       "env": {
         "REPONSE_API_KEY": "rp_live_xxxxxxxxxxxx"
       }
@@ -40,7 +40,7 @@ For **Cursor**, add the same entry under `.cursor/mcp.json`:
   "mcpServers": {
     "reponse": {
       "command": "npx",
-      "args": ["-y", "@reponseai/mcp-server"],
+      "args": ["-y", "@reponseai/mcp"],
       "env": {
         "REPONSE_API_KEY": "rp_live_xxxxxxxxxxxx"
       }

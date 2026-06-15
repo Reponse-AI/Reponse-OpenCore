@@ -1,7 +1,7 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
 import React from 'react';
-import * as _reponse_sdk from '@reponse/sdk';
-import { ReponseOptions, Reponse } from '@reponse/sdk';
+import * as _reponseai_sdk from '@reponseai/sdk';
+import { ReponseOptions, Reponse } from '@reponseai/sdk';
 import * as swr from 'swr';
 
 declare function ReponseProvider({ children, ...options }: ReponseOptions & {
@@ -15,11 +15,11 @@ declare function useProducts(params?: {
     limit?: number;
     cursor?: string;
 }): swr.SWRResponse<{
-    data: _reponse_sdk.ProductListResponse;
+    data: _reponseai_sdk.ProductListResponse;
     request: Request;
     response: Response;
 } | (({
-    data: _reponse_sdk.ProductListResponse;
+    data: _reponseai_sdk.ProductListResponse;
     error: undefined;
 } | {
     data: undefined;
@@ -29,11 +29,11 @@ declare function useProducts(params?: {
     response?: Response;
 }), any, any>;
 declare function useProduct(id: string): swr.SWRResponse<{
-    data: _reponse_sdk.Product;
+    data: _reponseai_sdk.Product;
     request: Request;
     response: Response;
 } | (({
-    data: _reponse_sdk.Product;
+    data: _reponseai_sdk.Product;
     error: undefined;
 } | {
     data: undefined;
@@ -45,14 +45,14 @@ declare function useProduct(id: string): swr.SWRResponse<{
 declare function useCollections(params?: {
     limit?: number;
 }): swr.SWRResponse<{
-    data: _reponse_sdk.CollectionListResponse;
+    data: _reponseai_sdk.CollectionListResponse;
     request: Request;
     response: Response;
 } | (({
     data: undefined;
     error: unknown;
 } | {
-    data: _reponse_sdk.CollectionListResponse;
+    data: _reponseai_sdk.CollectionListResponse;
     error: undefined;
 }) & {
     request?: Request;
@@ -60,11 +60,11 @@ declare function useCollections(params?: {
 }), any, any>;
 declare function useCart(cartId: string | null): {
     data: {
-        data: _reponse_sdk.Cart;
+        data: _reponseai_sdk.Cart;
         request: Request;
         response: Response;
     } | (({
-        data: _reponse_sdk.Cart;
+        data: _reponseai_sdk.Cart;
         error: undefined;
     } | {
         data: undefined;
@@ -76,11 +76,11 @@ declare function useCart(cartId: string | null): {
     error: any;
     isLoading: boolean;
     mutate: swr.KeyedMutator<{
-        data: _reponse_sdk.Cart;
+        data: _reponseai_sdk.Cart;
         request: Request;
         response: Response;
     } | (({
-        data: _reponse_sdk.Cart;
+        data: _reponseai_sdk.Cart;
         error: undefined;
     } | {
         data: undefined;

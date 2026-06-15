@@ -12,8 +12,9 @@
   "license": "MIT",
   "keywords": ["reponse", "react", "hooks", "commerce", "headless"],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --external react",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --external react --watch"
+    "build": "tsup src/index.ts --format cjs,esm --dts --external react --external @reponseai/sdk --external swr",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --external react --external @reponseai/sdk --external swr --watch",
+    "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
     "react": ">=18.0.0"
