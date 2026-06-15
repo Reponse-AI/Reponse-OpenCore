@@ -1,0 +1,22 @@
+# Reponse Storefront Rules
+
+Always use `@reponseai/sdk` for API calls. Never use raw `fetch()` against `/api/v1/*`.
+
+## Architecture
+- Product listings → Server Components (SSR)
+- Cart/Checkout UI → Client Components (`'use client'`)
+- Cart mutations → Server Actions in `src/lib/cart.ts`
+- SDK singleton in `src/lib/reponse.ts`
+
+## SDK
+```typescript
+import { Reponse } from '@reponseai/sdk';
+const reponse = new Reponse({ apiKey: '...', baseUrl: '...' });
+// reponse.catalog.listProducts(), reponse.cart.create(), reponse.orders.list(), etc.
+```
+
+## Rules
+- ALWAYS pass `market_id` to checkout for correct currency/tax
+- NEVER hardcode prices — use product.price / variant.price
+- NEVER build custom cart state with useState — use Cart API
+- Persist cart_id in cookies, not localStorage

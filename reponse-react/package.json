@@ -1,0 +1,31 @@
+{
+  "name": "@reponseai/react",
+  "version": "0.1.0",
+  "description": "React hooks for Reponse Headless Commerce API",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "README.md"],
+  "publishConfig": { "access": "public" },
+  "repository": { "type": "git", "url": "https://github.com/supernebuleux/Reponse" },
+  "homepage": "https://reponse.ai",
+  "license": "MIT",
+  "keywords": ["reponse", "react", "hooks", "commerce", "headless"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --external react",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --external react --watch"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "devDependencies": {
+    "react": "^19.0.0",
+    "@types/react": "^19.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@reponseai/sdk": "file:../reponse-sdk",
+    "swr": "^2.2.5"
+  }
+}

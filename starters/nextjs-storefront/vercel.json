@@ -1,0 +1,9 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "env": {
+    "NEXT_PUBLIC_REPONSE_API_URL": "@reponse_api_url",
+    "NEXT_PUBLIC_REPONSE_API_KEY": "@reponse_api_key",
+    "NEXT_PUBLIC_WORKSPACE_ID": "@reponse_workspace_id"
+  }
+}

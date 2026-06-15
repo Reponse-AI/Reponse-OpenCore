@@ -1,0 +1,45 @@
+{
+  "name": "@reponseai/sdk",
+  "version": "0.2.0",
+  "description": "Official TypeScript SDK for Reponse Headless Commerce API",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/supernebuleux/Reponse"
+  },
+  "homepage": "https://reponse.ai",
+  "license": "MIT",
+  "keywords": [
+    "reponse",
+    "commerce",
+    "headless",
+    "ecommerce",
+    "sdk",
+    "api",
+    "shopify-alternative",
+    "ai-commerce"
+  ],
+  "scripts": {
+    "generate:sdk": "openapi-ts",
+    "build": "pnpm run generate:sdk && tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "prepublishOnly": "pnpm run build"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.97.2",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@hey-api/client-fetch": "^0.13.1"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "name": "@reponseai/mcp",
+  "version": "0.1.0",
+  "description": "MCP Server for Reponse Headless Commerce",
+  "main": "dist/index.js",
+  "bin": {
+    "reponse-mcp": "dist/index.js"
+  },
+  "author": "Reponse AI",
+  "license": "MIT",
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/supernebuleux/Reponse"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "commerce",
+    "reponse",
+    "ai"
+  ],
+  "smithery": {
+    "installCommand": "npm install",
+    "startCommand": "npm start",
+    "env": {
+      "REPONSE_API_KEY": {
+        "description": "Your Reponse API Key (sk_live_...)",
+        "required": true
+      },
+      "REPONSE_API_URL": {
+        "description": "API Base URL (optional)",
+        "default": "https://api.reponse.ai"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
