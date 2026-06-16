@@ -5,15 +5,16 @@ description: "How Reponse enables agentic commerce."
 
 ## Overview
 
-**Agentic Commerce** means letting AI agents discover products, build carts, and complete purchases on a shopper's behalf. Reponse implements the Agentic Commerce Protocol (ACP) — a set of machine-readable feeds, APIs, and approval flows that allow agents to transact safely with human-in-the-loop controls.
+**Agentic Commerce** means letting AI agents discover products, build carts, and complete purchases on a shopper's behalf. Reponse implements the Agentic Commerce Protocol (ACP) — a set of machine-readable feeds, APIs, and payment flows that allow agents to transact safely.
 
 ## Prerequisites
 
 | Requirement | Description |
 |---|---|
 | Reponse workspace | Active workspace with products |
-| API key | Key with `catalog:read`, `cart:write`, `orders:write` scopes |
-| MCP or A2A client | An agent capable of calling tools or exchanging A2A messages |
+| API key | Workspace API key (Bearer token) |
+| Stripe | Stripe account connected to your workspace with SPT (Shared Payment Tokens) enabled |
+| Agent client | An AI agent capable of calling HTTP APIs (ChatGPT, Copilot, Gemini, etc.) |
 
 ## Architecture
 
@@ -31,12 +32,7 @@ Agentic commerce in Reponse is built on three pillars:
   ┌────▼──────────────▼──────────────▼────┐
   │         Reponse Commerce Engine       │
   │  Catalog · Cart · Checkout · Orders   │
-  └──────────────────┬────────────────────┘
-                     │
-              ┌──────▼──────┐
-              │  Approvals  │
-              │   (HITL)    │
-              └─────────────┘
+  └───────────────────────────────────────┘
 ```
 
 | Component | Purpose |
@@ -44,118 +40,148 @@ Agentic commerce in Reponse is built on three pillars:
 | **ACP Feed** | Machine-readable product feed optimized for agent consumption |
 | **MCP Server** | Tool interface for MCP-compatible agents (Claude, Cursor) |
 | **A2A Protocol** | JSON-RPC protocol for agent-to-agent task delegation |
-| **Approvals API** | Human-in-the-loop approval before checkout completes |
 
-## ACP product feed
+## Discovery
 
-The ACP feed exposes your catalog in an agent-optimized format:
+AI agents discover your storefront via a standard manifest:
 
 ```
-GET https://api.reponse.ai/v1/acp/products
-Authorization: Bearer rp_live_xxxxxxxxxxxx
+GET https://your-store.com/.well-known/acp.json
+```
+
+The manifest lists your endpoints, capabilities, and payment configuration. It is public (no auth required) and cached for 24 hours.
+
+## Product feed
+
+The ACP feed exposes your full catalog in an agent-optimized, gzip-compressed JSON format:
+
+```
+GET /api/v1/feed
+Authorization: Bearer YOUR_API_KEY
 ```
 
 ```json
 {
+  "version": "1.0",
+  "merchant": "Your Brand",
+  "product_count": 42,
+  "generated_at": "2026-05-26T06:00:00.000Z",
   "products": [
     {
       "id": "prod_xxx",
-      "name": "Organic Cotton T-Shirt",
+      "title": "Organic Cotton T-Shirt",
       "description": "Soft organic cotton, available in 5 colors",
-      "price": { "amount": 29.99, "currency": "EUR" },
+      "price": 29.99,
+      "currency": "EUR",
+      "availability": "in_stock",
+      "url": "https://your-store.com/products/organic-tee",
       "variants": [
-        { "id": "var_1", "attributes": { "size": "M", "color": "Navy" }, "available": true }
-      ],
-      "actions": ["add_to_cart", "view_details"]
+        {
+          "id": "var_1",
+          "title": "Small / Black",
+          "sku": "TS-SM-BLK",
+          "price": 29.99,
+          "inventory_quantity": 15,
+          "option_values": { "Size": "Small", "Color": "Black" },
+          "availability": "in_stock"
+        }
+      ]
     }
-  ],
-  "meta": { "nextCursor": "abc123", "hasMore": true }
+  ]
 }
 ```
+
+The response is Gzip-compressed (`Content-Encoding: gzip`). Most HTTP clients decompress automatically. Cache TTL is 1 hour.
 
 ## Agent capabilities
 
 An agent interacting with Reponse can perform these actions:
 
-| Capability | Description | Approval required |
+| Capability | Endpoint | Description |
 |---|---|---|
-| **Browse catalog** | Search and filter products | No |
-| **Get product details** | Fetch full product info, variants, images | No |
-| **Create cart** | Start a new shopping cart | No |
-| **Add/remove items** | Modify cart contents | No |
-| **Apply discount** | Apply promo codes or loyalty points | No |
-| **Initiate checkout** | Start the checkout flow | **Yes** |
-| **Confirm purchase** | Complete the order | **Yes** |
-| **Cancel order** | Cancel a pending order | **Yes** |
+| **Browse catalog** | `GET /api/v1/feed` | Full product feed (gzip JSON) |
+| **Search products** | `GET /api/v1/products` | Paginated search with filters |
+| **Create cart** | `POST /api/v1/carts` | Start a new shopping cart |
+| **Add/remove items** | `POST /api/v1/carts/{cart_id}/lines` | Modify cart contents |
+| **Apply discount** | `POST /api/v1/carts/{cart_id}/promotions` | Apply promo codes |
+| **Checkout with SPT** | `POST /api/v1/checkout/acp` | Complete purchase with Shared Payment Token |
 
 ## Checkout flow
 
-The agentic checkout flow enforces human approval before any payment is processed:
+The ACP checkout flow uses Stripe Shared Payment Tokens (SPT) for secure, agent-mediated payments:
 
-1. **Agent builds cart** — adds items, applies discounts
-2. **Agent requests checkout** — calls `POST /v1/checkout/initiate`
-3. **Approval request created** — a pending approval is generated
-4. **Human reviews** — shopper sees a summary and approves or rejects
-5. **Order confirmed** — on approval, payment is captured and order is created
+1. **Agent browses feed** — discovers products via `/api/v1/feed`
+2. **Agent creates cart** — calls `POST /api/v1/carts` and adds items
+3. **User authorizes payment** — the agent's platform (e.g. ChatGPT) collects payment consent and issues a Shared Payment Token (SPT) via Stripe
+4. **Agent completes checkout** — sends SPT to `POST /api/v1/checkout/acp`
+5. **Order created** — Reponse creates a PaymentIntent, captures payment, creates the order, and sends confirmation emails
+6. **Agent confirms** — the response includes `order_id` and `order_number` for the agent to relay to the shopper
 
-```typescript
-// Step 1: Agent initiates checkout
-const { data: checkout } = await reponse.checkout.initiate({
-  body: { cartId: 'cart_xxx' },
-});
-// checkout.approvalUrl → "https://shop.example.com/approve/apv_xxx"
-
-// Step 2: Shopper approves via the approval URL
-
-// Step 3: Agent polls or receives webhook for completion
-const { data: order } = await reponse.orders.get({
-  path: { id: checkout.orderId },
-});
+```bash
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cart_id": "cart_xyz789",
+    "payment_token": "spt_1234567890abcdef",
+    "shipping_address": {
+      "name": "John Doe",
+      "line1": "123 Rue de Rivoli",
+      "city": "Paris",
+      "postal_code": "75001",
+      "country": "FR"
+    },
+    "customer_email": "john@example.com",
+    "idempotency_key": "unique-request-id-abc"
+  }' \
+  https://your-domain.com/api/v1/checkout/acp
 ```
 
-## Approval system
-
-The approval system ensures shoppers retain control:
-
-| Field | Type | Description |
-|---|---|---|
-| `approvalId` | `string` | Unique approval identifier |
-| `status` | `enum` | `pending`, `approved`, `rejected`, `expired` |
-| `expiresAt` | `ISO 8601` | Approval link expiry (default: 30 minutes) |
-| `cartSummary` | `object` | Items, totals, and discount breakdown |
-| `approvalUrl` | `string` | URL the shopper visits to approve |
-
-### Approval webhooks
-
-Configure a webhook to receive approval status changes:
+### Successful response
 
 ```json
 {
-  "event": "approval.completed",
-  "data": {
-    "approvalId": "apv_xxx",
-    "status": "approved",
-    "orderId": "ord_xxx",
-    "timestamp": "2026-05-27T10:00:00Z"
+  "checkout_session_id": "pi_3abc123def456",
+  "status": "completed",
+  "payment_intent_id": "pi_3abc123def456",
+  "order_id": "uuid-of-created-order",
+  "order_number": "ACP-f456",
+  "order_summary": {
+    "currency": "EUR",
+    "subtotal": 59.98,
+    "discount": 0,
+    "shipping": 4.90,
+    "total": 64.88,
+    "line_items": [
+      {
+        "product_title": "Premium T-Shirt",
+        "variant_id": "var_001",
+        "quantity": 2,
+        "unit_price": 29.99
+      }
+    ],
+    "applied_discount_codes": []
   }
 }
 ```
 
-## Configuration reference
+### Checkout status values
 
-| Setting | Location | Description |
-|---|---|---|
-| ACP feed enabled | Dashboard → Settings → Agentic | Toggle ACP product feed |
-| Approval expiry | Dashboard → Settings → Agentic | Time before approval link expires |
-| Webhook URL | Dashboard → Settings → Webhooks | Endpoint for approval events |
-| Allowed agent origins | Dashboard → Settings → Agentic | Restrict which agents can initiate checkout |
+| Status | Meaning |
+|---|---|
+| `completed` | Payment succeeded. Order created and confirmation email sent. |
+| `requires_action` | 3D Secure or additional auth needed. Use `client_secret` to complete. |
+| `processing` | Payment is being processed asynchronously. |
+| `failed` | Payment failed. Check error details. |
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
 | ACP feed returns empty | No published products | Publish products in the dashboard |
-| Checkout initiation fails | Cart is empty or expired | Verify cart has items and is not stale |
-| Approval link expired | Shopper didn't approve in time | Re-initiate checkout to generate a new link |
-| Webhook not received | URL not configured or unreachable | Verify webhook URL in dashboard settings |
-| Agent gets `FORBIDDEN` | API key missing `orders:write` scope | Regenerate key with required scopes |
+| `401 Unauthorized` | Invalid API key | Check your API key is valid and hasn't been rotated |
+| `400 Stripe not configured` | Missing Stripe keys | Ensure Stripe is connected in workspace settings |
+| `400 No market configuration` | No market defined | Create at least one market with `is_domestic: true` |
+| `402 Payment declined` | SPT rejected | Card issue on user's side — agent must request a new SPT |
+| `400 Invalid payment token` | SPT expired or malformed | Agent must request a new SPT |
+| Agent gets `404` on cart | Cart not found or wrong workspace | Verify cart_id belongs to the authenticated workspace |
