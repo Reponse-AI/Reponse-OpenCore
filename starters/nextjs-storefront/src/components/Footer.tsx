@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import { ObfuscatedLink } from "@/components/seo/ObfuscatedLink";
 
 const POLICY_LINKS = [
   { label: "Privacy Policy", href: "/policies/privacy-policy" },
@@ -39,9 +41,10 @@ export function Footer() {
           }}
         >
           {POLICY_LINKS.map((link) => (
-            <Link
+            <ObfuscatedLink
               key={link.href}
-              href={link.href}
+              to={link.href}
+              ariaLabel={link.label}
               style={{
                 fontSize: 13,
                 color: "#6b7280",
@@ -49,7 +52,7 @@ export function Footer() {
               }}
             >
               {link.label}
-            </Link>
+            </ObfuscatedLink>
           ))}
         </nav>
 
@@ -66,3 +69,4 @@ export function Footer() {
     </footer>
   );
 }
+

@@ -14,11 +14,14 @@ Built with the App Router, Server Components, Tailwind CSS v4, and the `@reponse
 - ✅ Product catalog with variant support
 - ✅ Product Detail Page (PDP) with image gallery & click-to-zoom
 - ✅ Interactive variant selector with live price updates
-- ✅ Collection pages
+- ✅ Collection pages with JSON-LD structured data
 - ✅ Cart with add / remove / update quantity
 - ✅ Stripe Checkout (via Réponse)
 - ✅ Order confirmation page
-- ✅ SEO metadata (`seo_title`, `seo_description`, Open Graph)
+- ✅ SEO metadata (`seo_title`, `seo_description`, Open Graph, canonical URLs)
+- ✅ SEO link obfuscation (crawl budget optimisation)
+- ✅ JSON-LD structured data (Product, BreadcrumbList, CollectionPage)
+- ✅ Dynamic sitemap & robots.txt
 - ✅ Conversational AI widget (optional — drop in your Réponse chat snippet)
 
 ---
@@ -93,14 +96,20 @@ src/
 │   ├── products/
 │   │   ├── page.tsx              # Product catalog
 │   │   └── [slug]/page.tsx       # Product detail page (PDP)
-│   ├── collections/[id]/page.tsx # Collection page
+│   ├── collections/[handle]/page.tsx # Collection page
 │   ├── cart/page.tsx             # Shopping cart
 │   ├── checkout/page.tsx         # Stripe Checkout redirect
-│   └── order/success/page.tsx    # Order confirmation
+│   ├── order/success/page.tsx    # Order confirmation
+│   ├── sitemap.ts                # Dynamic sitemap (products + collections)
+│   └── robots.ts                 # Crawl directives
 ├── components/
 │   ├── Header.tsx                # Sticky header with cart count
+│   ├── Footer.tsx                # Policy links (obfuscated)
 │   ├── ImageGallery.tsx          # PDP image gallery with zoom
-│   └── VariantSelector.tsx       # Interactive variant + add-to-cart
+│   ├── VariantSelector.tsx       # Interactive variant + add-to-cart
+│   └── seo/
+│       ├── ObfuscatedLink.tsx    # Link hidden from search crawlers
+│       └── HeaderNav.tsx         # Client nav with obfuscated cart link
 └── lib/
     ├── reponse.ts                # SDK client (server-side)
     └── cart.ts                   # Cart server actions & helpers
@@ -128,6 +137,42 @@ If no cart exists when adding an item, one is created automatically via `POST /a
 ### Checkout
 
 `/checkout` creates a Stripe Checkout session via the Réponse SDK and redirects the browser. On success, Stripe redirects back to `/order/success`.
+
+---
+
+## SEO
+
+The storefront includes enterprise-grade SEO out of the box.
+
+### Link obfuscation
+
+The `ObfuscatedLink` component hides links from search engine crawlers to optimise crawl budget and PageRank distribution. It renders a `<span>` with JS navigation instead of an `<a href>`, so Googlebot never sees the URL.
+
+**Use `ObfuscatedLink` for:** cart, checkout, account, policy pages, filters, sort controls — anything with no SEO value.
+
+**Use standard `<Link>` for:** products, collections, homepage, breadcrumbs — anything Google should index.
+
+```tsx
+import { ObfuscatedLink } from "@/components/seo/ObfuscatedLink";
+
+// Hidden from crawlers
+<ObfuscatedLink to="/cart" ariaLabel="View cart">Cart</ObfuscatedLink>
+
+// Crawlable — use standard Next.js Link
+import Link from "next/link";
+<Link href="/products/my-product">My Product</Link>
+```
+
+### Structured data
+
+- **Product pages**: Product JSON-LD + BreadcrumbList JSON-LD (automatic)
+- **Collection pages**: CollectionPage + ItemList + BreadcrumbList JSON-LD (automatic)
+- **Canonical URLs**: Set on product and collection pages
+
+### Sitemap & robots.txt
+
+- `src/app/sitemap.ts` — auto-generates URLs for products and collections (revalidates hourly)
+- `src/app/robots.ts` — blocks `/cart`, `/checkout`, `/order/` from crawlers
 
 ---
 

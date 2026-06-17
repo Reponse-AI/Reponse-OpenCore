@@ -105,11 +105,27 @@ export default async function ProductPage({
     },
   };
 
+  // JSON-LD: BreadcrumbList matching the visual breadcrumbs
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl || "/" },
+      { "@type": "ListItem", position: 2, name: "Catalog", item: `${siteUrl}/products` },
+      { "@type": "ListItem", position: 3, name: product.title },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <Header />
 

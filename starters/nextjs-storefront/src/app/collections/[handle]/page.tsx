@@ -15,9 +15,13 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
     const collection = collectionsRes.data?.data?.find((c: any) => c.handle === handle);
     
     if (collection) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+      const canonicalUrl = `${siteUrl}/collections/${handle}`;
+
       return {
         title: collection.seo_title || collection.title,
         description: collection.seo_description || collection.description,
+        alternates: { canonical: canonicalUrl },
       };
     }
   } catch (e) {
@@ -65,13 +69,70 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
     notFound();
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const collectionTitle = collection?.title || "Collection";
+
+  // JSON-LD: CollectionPage with ItemList
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: collectionTitle,
+    description: collection?.description || undefined,
+    url: `${siteUrl}/collections/${handle}`,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: products.length,
+      itemListElement: products.map((product: Record<string, unknown>, index: number) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${siteUrl}/products/${(product.slug as string) || (product.id as string)}`,
+        name: product.title as string,
+        image: Array.isArray(product.images) ? product.images[0] : undefined,
+      })),
+    },
+  };
+
+  // JSON-LD: BreadcrumbList
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl || "/" },
+      { "@type": "ListItem", position: 2, name: "Collections", item: `${siteUrl}/collections` },
+      { "@type": "ListItem", position: 3, name: collectionTitle },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Header />
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-8 py-12">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
+          <Link href="/" className="hover:text-gray-700 transition-colors">
+            Home
+          </Link>
+          <span>/</span>
+          <Link href="/collections" className="hover:text-gray-700 transition-colors">
+            Collections
+          </Link>
+          <span>/</span>
+          <span className="text-gray-700 font-medium truncate max-w-[200px]">
+            {collectionTitle}
+          </span>
+        </nav>
+
         <div className="mb-10 text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm">
-          <h1 className="text-4xl font-extrabold tracking-tight mb-4">{collection?.title || "Collection"}</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight mb-4">{collectionTitle}</h1>
           {collection?.description && (
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">{collection.description}</p>
           )}

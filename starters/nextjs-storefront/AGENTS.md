@@ -21,6 +21,8 @@
 6. **NEVER** hardcode prices — they come from the API (`product.price`, `variant.price`).
 7. **NEVER** build custom cart state with `useState` — use the Cart API or `useCart()` hook.
 8. Persist `cart_id` in cookies (server-side) not localStorage.
+9. **SEO links**: Use `ObfuscatedLink` for links with no SEO value (cart, checkout, policies, filters). Use standard `<Link>` for crawlable pages (products, collections, breadcrumbs).
+10. **NEVER** add `/cart`, `/checkout`, or `/order/` URLs to the sitemap.
 
 ## SDK Quick Reference
 
@@ -63,12 +65,17 @@ const matchedVariant = variants.find(v =>
 | Cart Server Actions | `src/lib/cart.ts` |
 | Product grid (home) | `src/app/page.tsx` |
 | Product detail (PDP) | `src/app/products/[slug]/page.tsx` |
+| Collection page | `src/app/collections/[handle]/page.tsx` |
 | Variant selector | `src/components/VariantSelector.tsx` |
 | Image gallery | `src/components/ImageGallery.tsx` |
 | Cart page | `src/app/cart/page.tsx` |
 | Checkout flow | `src/app/checkout/page.tsx` |
 | Checkout steps | `src/components/checkout/` |
 | Currency formatting | `src/lib/currency.ts` |
+| SEO: ObfuscatedLink | `src/components/seo/ObfuscatedLink.tsx` |
+| SEO: HeaderNav | `src/components/seo/HeaderNav.tsx` |
+| Dynamic sitemap | `src/app/sitemap.ts` |
+| Robots directives | `src/app/robots.ts` |
 
 ## AI Chat Widget
 
