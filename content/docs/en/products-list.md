@@ -27,6 +27,7 @@ Authorization: Bearer <your_api_key>
 | `cursor` | string | ❌ | Pagination cursor (created_at of last item) |
 | `query` | string | ❌ | Search by title (case-insensitive) |
 | `slug` | string | ❌ | Exact product handle match |
+| `include` | string | ❌ | Comma-separated list of extra fields to include (e.g. `metafields`) |
 
 ## Response
 

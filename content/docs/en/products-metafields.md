@@ -9,7 +9,7 @@ Metafields store **extended, structured attributes** on products beyond the core
 
 ## Authentication
 
-All metafield endpoints require a valid API key with `catalog:read` (for GET) or `catalog:write` (for PATCH) scopes.
+All metafield endpoints require a valid API key with `read:products` (for GET) or `write:products` (for PATCH) scopes.
 
 ```
 Authorization: Bearer rp_live_xxxxxxxxxxxx
@@ -22,7 +22,7 @@ Retrieve all metafields for a product.
 ### Request
 
 ```
-GET /v1/catalog/products/:productId/metafields
+GET /v1/products/:productId/metafields
 ```
 
 | Parameter | In | Type | Required | Description |
@@ -66,7 +66,7 @@ GET /v1/catalog/products/:productId/metafields
 **cURL:**
 
 ```bash
-curl -X GET "https://api.reponse.ai/v1/catalog/products/prod_xxx/metafields?namespace=custom" \
+curl -X GET "https://api.reponse.ai/v1/products/prod_xxx/metafields?namespace=custom" \
   -H "Authorization: Bearer rp_live_xxxxxxxxxxxx"
 ```
 
@@ -90,7 +90,7 @@ Create or update metafields on a product. If a metafield with the same `namespac
 ### Request
 
 ```
-PATCH /v1/catalog/products/:productId/metafields
+PATCH /v1/products/:productId/metafields
 ```
 
 | Parameter | In | Type | Required | Description |
@@ -149,7 +149,7 @@ PATCH /v1/catalog/products/:productId/metafields
 **cURL:**
 
 ```bash
-curl -X PATCH "https://api.reponse.ai/v1/catalog/products/prod_xxx/metafields" \
+curl -X PATCH "https://api.reponse.ai/v1/products/prod_xxx/metafields" \
   -H "Authorization: Bearer rp_live_xxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -190,14 +190,18 @@ Metafields follow a `namespace.key` naming convention:
 |---|---|---|
 | `custom` | Merchant-defined fields | `custom.care_instructions`, `custom.material` |
 | `shopify` | Synced from Shopify metafields | `shopify.google_product_category` |
+| `specs` | Technical specifications | `specs.battery_capacity`, `specs.screen_size` |
+| `compliance` | Regulatory compliance | `compliance.oeko_tex`, `compliance.origin_country` |
+| `dimensions` | Physical dimensions | `dimensions.length`, `dimensions.width` |
 | `seo` | SEO-specific metadata | `seo.title_override`, `seo.description_override` |
 | `ai` | AI grounding data | `ai.product_facts`, `ai.usage_scenarios` |
 
 **Naming rules:**
 
-- Namespaces: lowercase, alphanumeric, max 64 characters
+- Namespaces: lowercase, alphanumeric with underscores, max 64 characters
 - Keys: lowercase, alphanumeric with underscores, max 128 characters
 - Combined: `namespace.key` must be unique per product
+- Maximum 50 metafields per product
 
 ## Value types
 
@@ -222,19 +226,31 @@ Metafields follow a `namespace.key` naming convention:
 | Consumer | Usage |
 |---|---|
 | **JSON-LD structured data** | Metafields like `google_product_category`, `material`, `weight` are mapped to Schema.org properties |
-| **AI engines** | Product facts from metafields are injected into the system prompt for accurate answers |
-| **Storefront display** | Metafields can be rendered in product detail templates |
+| **AI engines** | Product metafields are injected into the system prompt as `[PRODUCT_ATTRIBUTES]` for accurate answers |
+| **Storefront display** | Metafields can be rendered in product detail templates via the headless API |
 | **Search & filters** | Numeric and enum metafields can power faceted search |
+| **Shopify sync** | Metafields from Shopify are automatically synced with `namespace: "shopify"` |
+
+## Metafields in product responses
+
+Metafields are **included by default** in the product detail endpoint (`GET /v1/products/:id`).
+
+For the product list endpoint (`GET /v1/products`), metafields are **excluded by default** to keep responses lightweight. Add `?include=metafields` to include them:
+
+```
+GET /v1/products?include=metafields
+```
 
 ## Error codes
 
 | Code | Status | Description |
 |---|---|---|
 | `UNAUTHORIZED` | 401 | Missing or invalid API key |
-| `FORBIDDEN` | 403 | Key lacks `catalog:write` scope |
+| `FORBIDDEN` | 403 | Key lacks `write:products` scope |
 | `PRODUCT_NOT_FOUND` | 404 | Product ID does not exist |
 | `INVALID_NAMESPACE` | 422 | Namespace contains invalid characters |
 | `INVALID_KEY` | 422 | Key contains invalid characters or exceeds max length |
 | `INVALID_VALUE_TYPE` | 422 | Value does not match the declared type |
 | `DUPLICATE_METAFIELD` | 409 | Multiple metafields with same namespace+key in a single request |
+| `METAFIELD_LIMIT` | 422 | Product already has 50 metafields |
 | `RATE_LIMITED` | 429 | Too many requests |

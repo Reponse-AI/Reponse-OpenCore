@@ -33,9 +33,14 @@ Authorization: Bearer <your_api_key>
   "in_stock": true,
   "images": [...],
   "variants": [...],
-  "option_definitions": [...]
+  "option_definitions": [...],
+  "metafields": [
+    { "id": "uuid", "namespace": "custom", "key": "material", "value": "Cotton", "type": "single_line_text" }
+  ]
 }
 ```
+
+> **Note:** `metafields` are included by default in the product detail response. See [Product metafields](doc:products-metafields) for details.
 
 ## Code Examples
 
