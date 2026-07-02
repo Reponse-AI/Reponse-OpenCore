@@ -1,0 +1,10 @@
+# Reponse Store — Netlify deployment configuration
+# Deploy this starter as a standalone site on Netlify.
+# Set the base directory to "starters/nextjs-storefront" if deploying from the monorepo.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

@@ -9,7 +9,7 @@ export async function Header() {
   return (
     <header className="bg-white border-b px-8 py-4 flex items-center justify-between sticky top-0 z-10">
       <Link href="/" className="text-xl font-bold tracking-tight">
-        Reponse Storefront
+        Reponse Store
       </Link>
       <HeaderNav itemCount={itemCount} />
     </header>

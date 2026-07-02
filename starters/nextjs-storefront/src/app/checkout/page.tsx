@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { EmbeddedCheckout } from "./embedded-checkout";
 
 export const metadata = {
-  title: "Checkout | Reponse Storefront",
+  title: "Checkout | Reponse Store",
 };
 
 const CHECKOUT_MODE = process.env.CHECKOUT_MODE || "embedded";

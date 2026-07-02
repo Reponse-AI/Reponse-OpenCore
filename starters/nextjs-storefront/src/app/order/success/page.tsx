@@ -3,7 +3,7 @@ import { clearCartId } from "@/lib/cart";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Order Success | Reponse Storefront",
+  title: "Order Success | Reponse Store",
 };
 
 export default async function OrderSuccessPage() {

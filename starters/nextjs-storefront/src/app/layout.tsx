@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Reponse Storefront", template: "%s | Reponse Storefront" },
-  description: "A modern e-commerce storefront powered by Reponse",
+  title: { default: "Reponse Store", template: "%s | Reponse Store" },
+  description: "The official Reponse demo store — headless commerce, powered by AI",
 };
 
 export default function RootLayout({
@@ -28,7 +29,17 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}<Footer /></body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Footer />
+        {process.env.NEXT_PUBLIC_WORKSPACE_ID && (
+          <Script
+            src="https://reponse.ai/assets/sdk/reponse-widget.min.js"
+            data-workspace-id={process.env.NEXT_PUBLIC_WORKSPACE_ID}
+            strategy="lazyOnload"
+          />
+        )}
+      </body>
     </html>
   );
 }

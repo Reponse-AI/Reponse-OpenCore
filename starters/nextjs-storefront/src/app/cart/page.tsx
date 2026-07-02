@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Your Cart | Reponse Storefront",
+  title: "Your Cart | Reponse Store",
 };
 
 export default async function CartPage() {
