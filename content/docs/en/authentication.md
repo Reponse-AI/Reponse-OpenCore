@@ -78,6 +78,80 @@ Revoked keys return `401 Unauthorized` immediately.
 - Use test keys (`rp_test_`) for local development and CI.
 - Rotate keys periodically and after any team-member departure.
 
+## Storefront Public Auth
+
+Storefront applications (e.g. the Next.js starter) can access **read-only catalog endpoints** and **shopping operations** (carts, checkout, shipping) without an API key by passing a `x-workspace-id` header instead.
+
+This keeps the onboarding frictionless: merchants only need their Workspace ID to launch a storefront. Sensitive admin endpoints (orders management, inventory writes, CRM) still require a full API key.
+
+### How it Works
+
+Pass your Workspace ID in the `x-workspace-id` header:
+
+```bash
+curl -X GET https://api.reponse.ai/v1/products \
+  -H "x-workspace-id: your-workspace-uuid"
+```
+
+Or as a query parameter:
+
+```
+GET https://api.reponse.ai/v1/products?workspace_id=your-workspace-uuid
+```
+
+### Public Endpoints
+
+The following endpoints accept `x-workspace-id` authentication:
+
+| Endpoint | Methods | Description |
+| --- | --- | --- |
+| `/v1/products` | GET | List products |
+| `/v1/products/:id` | GET | Product detail |
+| `/v1/collections` | GET | List collections |
+| `/v1/collections/:handle` | GET | Collection detail |
+| `/v1/collections/:handle/products` | GET | Products in a collection |
+| `/v1/carts` | POST | Create cart |
+| `/v1/carts/:id` | GET, PATCH | Read/update cart |
+| `/v1/carts/:id/items` | POST | Add items |
+| `/v1/carts/:id/items/:lineId` | PUT, DELETE | Update/remove items |
+| `/v1/carts/:id/promotions` | POST, DELETE | Apply/remove promotions |
+| `/v1/checkout/*` | POST | Stripe, intent, ACP checkout |
+| `/v1/shipping/rates` | GET | Calculate shipping |
+| `/v1/discounts/validate` | POST | Validate a discount code |
+| `/v1/policies` | GET | Legal policies |
+| `/v1/theme` | GET | Storefront theme config |
+
+All other endpoints require a Bearer API key.
+
+### Rate Limits
+
+Public-auth requests are rate-limited per IP address:
+
+| Tier | Limit | Applies to |
+| --- | --- | --- |
+| Read | 120 requests/minute | GET endpoints |
+| Write | 30 requests/minute | POST, PUT, PATCH, DELETE |
+| Checkout | 5 requests/5 minutes | `/checkout/*` endpoints |
+
+Requests authenticated with a Bearer API key are not rate-limited.
+
+### SDK Usage
+
+The `@reponseai/sdk` supports both authentication modes:
+
+```typescript
+import { Reponse, client } from "@reponseai/sdk";
+
+// Option A: API key auth (admin/backend)
+const reponse = new Reponse({ apiKey: process.env.REPONSE_API_KEY! });
+
+// Option B: Public auth (storefront)
+client.setConfig({
+  baseUrl: "https://reponse.ai/api",
+  headers: { "x-workspace-id": process.env.NEXT_PUBLIC_WORKSPACE_ID! },
+});
+```
+
 ## Troubleshooting
 
 | Issue | Solution |
