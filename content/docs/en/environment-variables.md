@@ -24,6 +24,21 @@ Reponse uses environment variables to configure API keys, database connections, 
 | `REPONSE_API_KEY` | Workspace API key used by the SDK. Server-side only. |
 | `NEXT_PUBLIC_REPONSE_BASE_URL` | Optional API base URL override for the client SDK. |
 
+## Storefront
+
+These variables are specific to storefronts built with the [Storefront Starter](doc:storefront-starter) or the Reponse SDK.
+
+| Variable | Description |
+| --- | --- |
+| `NEXT_PUBLIC_REPONSE_API_URL` | API base URL (e.g. `https://reponse.ai/api`). |
+| `NEXT_PUBLIC_REPONSE_API_KEY` | Client-side API key (same value as `REPONSE_API_KEY`). Used for client-side cart and variant operations. |
+| `NEXT_PUBLIC_WORKSPACE_ID` | Workspace UUID. Found in the dashboard URL or **Settings → General**. |
+| `NEXT_PUBLIC_STORE_NAME` | Store name displayed in the header and footer. |
+| `NEXT_PUBLIC_SITE_URL` | Canonical site URL for SEO (e.g. `https://my-store.com`). |
+| `NEXT_PUBLIC_MARKET_ID` | Market UUID for currency, taxes, and shipping. Found in **Dashboard → Settings → Markets**. |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (`pk_live_` or `pk_test_`). Found in [Stripe Dashboard → API Keys](https://dashboard.stripe.com/apikeys). |
+| `CHECKOUT_MODE` | Checkout flow: `embedded` (Stripe Elements on your site) or `redirect` (Stripe-hosted page). Defaults to `embedded`. |
+
 ## Shopify
 
 | Variable | Description |
