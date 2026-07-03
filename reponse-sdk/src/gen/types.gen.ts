@@ -11,7 +11,11 @@ export type ProductVariant = {
     compare_at_price: number | null;
     inventory_quantity: number;
     sku: string | null;
+    barcode?: string | null;
     option_values: Array<string> | null;
+    position?: number;
+    weight?: number | null;
+    weight_unit?: string | null;
 };
 
 export type ProductMetafield = {
@@ -31,12 +35,22 @@ export type Product = {
     description: string | null;
     seo_title: string | null;
     seo_description: string | null;
+    vendor?: string | null;
+    category_name?: string | null;
+    google_product_category_path?: string | null;
+    product_type?: string | null;
+    tags?: Array<string>;
     price: number;
     compare_at_price: number | null;
     currency: string;
     in_stock: boolean;
     images: Array<string>;
     status: 'active' | 'draft' | 'archived';
+    has_only_default_variant?: boolean;
+    /**
+     * Product option definitions (e.g. Size, Color)
+     */
+    option_definitions?: unknown;
     variants?: Array<ProductVariant>;
     /**
      * Included by default on detail, opt-in on list (?include=metafields)
