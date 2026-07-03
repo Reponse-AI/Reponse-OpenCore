@@ -14,6 +14,16 @@ export type ProductVariant = {
     option_values: Array<string> | null;
 };
 
+export type ProductMetafield = {
+    id: string;
+    namespace: string;
+    key: string;
+    value: string | null;
+    type: 'single_line_text' | 'multi_line_text' | 'number_integer' | 'number_decimal' | 'boolean' | 'json' | 'date' | 'url' | 'color' | 'dimension' | 'weight';
+    createdAt?: string;
+    updatedAt?: string;
+};
+
 export type Product = {
     id: string;
     title: string;
@@ -28,6 +38,10 @@ export type Product = {
     images: Array<string>;
     status: 'active' | 'draft' | 'archived';
     variants?: Array<ProductVariant>;
+    /**
+     * Included by default on detail, opt-in on list (?include=metafields)
+     */
+    metafields?: Array<ProductMetafield>;
     created_at: string;
     updated_at: string;
 };
@@ -95,131 +109,67 @@ export type UpdateCartItemInput = {
     quantity: number;
 };
 
-export type Order = {
+export type CollectionDetail = {
     id: string;
-    status: 'paid' | 'fulfilled' | 'shipped' | 'cancelled' | 'refunded';
-    customer_email?: string;
+    title: string;
+    handle: string;
+    description: string | null;
+    image_url: string | null;
+    seo_title: string | null;
+    seo_description: string | null;
+    product_count: number;
+};
+
+export type CollectionProductsResponse = {
+    products: Array<Product>;
     total: number;
+    limit: number;
+    offset: number;
+};
+
+/**
+ * CSS custom properties keyed by variable name (e.g. --rp-color-primary)
+ */
+export type ThemeResponse = {
+    [key: string]: string;
+};
+
+export type ShippingRate = {
+    rate_id: string;
+    name: string;
+    price: number;
     currency: string;
-    items: Array<{
-        product_id?: string;
-        variant_id?: string;
-        quantity?: number;
-        price?: number;
-    }>;
-    shipping_address?: {
-        address1?: string;
-        address2?: string;
-        city?: string;
-        zip?: string;
-        country?: string;
-    } | null;
-    tracking_number?: string | null;
-    tracking_company?: string | null;
-    tracking_url?: string | null;
-    created_at: string;
-    updated_at: string;
-};
-
-export type OrderListResponse = {
-    data: Array<Order>;
-};
-
-export type Ticket = {
-    id: string;
-    customer_email: string;
-    subject: string;
-    message: string;
-    status: 'open' | 'pending_customer' | 'resolved' | 'archived';
-    category?: 'shipping' | 'return_refund' | 'defective_product' | 'payment' | 'product_question' | 'other';
-    order_id?: string | null;
-    created_at: string;
-};
-
-export type TicketListResponse = {
-    data: Array<Ticket>;
-};
-
-export type DiscountCode = {
-    id: string;
-    code: string;
-    type: 'percentage' | 'fixed_amount' | 'free_shipping' | 'bxgy';
-    value: number;
-    active: boolean;
-    starts_at?: string | null;
-    end_at?: string | null;
-    usage_limit_total?: number | null;
-    usage_count?: number;
-    conditions?: string | null;
-};
-
-export type DiscountListResponse = {
-    data: Array<DiscountCode>;
-};
-
-export type DiscountValidation = {
-    valid: boolean;
-    discount?: DiscountCode;
-    savings?: number | null;
-    message?: string;
-};
-
-export type InventoryLevel = {
-    variant_id: string;
-    sku?: string | null;
-    quantity: number;
-    product_id?: string;
-};
-
-export type LoyaltyBalance = {
-    contact_id: string;
-    points: number;
-    tier?: string | null;
-};
-
-export type ReferralInfo = {
-    contact_id: string;
-    referral_link: string;
-    referrals_count?: number;
-    rewards_earned?: number;
-};
-
-export type GiftCard = {
-    id: string;
-    code: string;
-    initial_value: number;
-    balance: number;
-    currency: string;
-    expires_at?: string | null;
-    active: boolean;
-};
-
-export type GiftCardListResponse = {
-    data: Array<GiftCard>;
-};
-
-export type Subscription = {
-    id: string;
-    status: string;
-    next_shipment_date?: string | null;
-};
-
-export type SuccessResponse = {
-    success: boolean;
-    message?: string;
-};
-
-export type GeocodeResult = {
-    lat: number;
-    lng: number;
-    formatted_address: string;
-    components?: {
-        street?: string;
-        city?: string;
-        state?: string;
-        zip?: string;
-        country?: string;
+    delivery_estimate?: {
+        min_days: number;
+        max_days: number;
     };
+    is_free: boolean;
+};
+
+export type ShippingRatesResponse = {
+    profiles: Array<{
+        profile_id: string;
+        profile_name: string;
+        rates: Array<ShippingRate>;
+    }>;
+};
+
+export type Policy = {
+    policy_type: 'privacy_policy' | 'terms_of_service' | 'refund_policy' | 'shipping_policy' | 'legal_notice';
+    title: string;
+    body: string;
+    locale?: string;
+    updated_at?: string;
+    slug?: string;
+    url?: string;
+};
+
+export type PolicyListResponse = {
+    data: Array<Policy>;
+};
+
+export type PolicyDetailResponse = {
+    data: Policy;
 };
 
 export type GetV1ProductsData = {
@@ -682,523 +632,169 @@ export type PostV1CheckoutStripeResponses = {
 
 export type PostV1CheckoutStripeResponse = PostV1CheckoutStripeResponses[keyof PostV1CheckoutStripeResponses];
 
-export type GetV1OrdersData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by order status
-         */
-        status?: 'paid' | 'fulfilled' | 'shipped' | 'cancelled' | 'refunded';
-        /**
-         * Number of items to return
-         */
-        limit?: number;
-    };
-    url: '/v1/orders';
-};
-
-export type GetV1OrdersResponses = {
-    /**
-     * A list of orders
-     */
-    200: OrderListResponse;
-};
-
-export type GetV1OrdersResponse = GetV1OrdersResponses[keyof GetV1OrdersResponses];
-
-export type PostV1OrdersByOrderIdFulfillData = {
-    body?: {
-        tracking_number?: string;
-        tracking_company?: string;
-        tracking_url?: string;
-        send_email?: boolean;
-    };
-    path: {
-        /**
-         * Order ID
-         */
-        orderId: string;
-    };
-    query?: never;
-    url: '/v1/orders/{orderId}/fulfill';
-};
-
-export type PostV1OrdersByOrderIdFulfillResponses = {
-    /**
-     * Order fulfilled successfully
-     */
-    200: SuccessResponse;
-};
-
-export type PostV1OrdersByOrderIdFulfillResponse = PostV1OrdersByOrderIdFulfillResponses[keyof PostV1OrdersByOrderIdFulfillResponses];
-
-export type PostV1OrdersByOrderIdRefundData = {
-    body?: {
-        /**
-         * Partial refund amount. Omit for full refund.
-         */
-        amount?: number;
-        reason?: string;
-        note?: string;
-    };
-    path: {
-        /**
-         * Order ID
-         */
-        orderId: string;
-    };
-    query?: never;
-    url: '/v1/orders/{orderId}/refund';
-};
-
-export type PostV1OrdersByOrderIdRefundResponses = {
-    /**
-     * Order refunded successfully
-     */
-    200: SuccessResponse;
-};
-
-export type PostV1OrdersByOrderIdRefundResponse = PostV1OrdersByOrderIdRefundResponses[keyof PostV1OrdersByOrderIdRefundResponses];
-
-export type GetV1InventoryData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by variant ID
-         */
-        variant_id?: string;
-        /**
-         * Filter by SKU
-         */
-        sku?: string;
-        /**
-         * Filter by product ID
-         */
-        product_id?: string;
-    };
-    url: '/v1/inventory';
-};
-
-export type GetV1InventoryResponses = {
-    /**
-     * Inventory level
-     */
-    200: InventoryLevel;
-};
-
-export type GetV1InventoryResponse = GetV1InventoryResponses[keyof GetV1InventoryResponses];
-
-export type PostV1InventoryData = {
-    body?: {
-        variant_id: string;
-        quantity: number;
-        /**
-         * Set absolute quantity or adjust by delta
-         */
-        mode?: 'set' | 'adjust';
-        reason?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/inventory';
-};
-
-export type PostV1InventoryResponses = {
-    /**
-     * Updated inventory level
-     */
-    200: InventoryLevel;
-};
-
-export type PostV1InventoryResponse = PostV1InventoryResponses[keyof PostV1InventoryResponses];
-
-export type GetV1LoyaltyData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Contact ID
-         */
-        contact_id: string;
-    };
-    url: '/v1/loyalty';
-};
-
-export type GetV1LoyaltyResponses = {
-    /**
-     * Loyalty balance
-     */
-    200: LoyaltyBalance;
-};
-
-export type GetV1LoyaltyResponse = GetV1LoyaltyResponses[keyof GetV1LoyaltyResponses];
-
-export type PostV1LoyaltyRedeemData = {
-    body?: {
-        contact_id: string;
-        points: number;
-        order_id?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/loyalty/redeem';
-};
-
-export type PostV1LoyaltyRedeemResponses = {
-    /**
-     * Points redeemed successfully
-     */
-    200: SuccessResponse;
-};
-
-export type PostV1LoyaltyRedeemResponse = PostV1LoyaltyRedeemResponses[keyof PostV1LoyaltyRedeemResponses];
-
-export type GetV1LoyaltyReferralData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Contact ID
-         */
-        contact_id: string;
-    };
-    url: '/v1/loyalty/referral';
-};
-
-export type GetV1LoyaltyReferralResponses = {
-    /**
-     * Referral information
-     */
-    200: ReferralInfo;
-};
-
-export type GetV1LoyaltyReferralResponse = GetV1LoyaltyReferralResponses[keyof GetV1LoyaltyReferralResponses];
-
-export type GetV1GiftCardsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Number of items to return
-         */
-        limit?: number;
-    };
-    url: '/v1/gift-cards';
-};
-
-export type GetV1GiftCardsResponses = {
-    /**
-     * A list of gift cards
-     */
-    200: GiftCardListResponse;
-};
-
-export type GetV1GiftCardsResponse = GetV1GiftCardsResponses[keyof GetV1GiftCardsResponses];
-
-export type PostV1GiftCardsData = {
-    body?: {
-        initial_value: number;
-        currency?: string;
-        code?: string;
-        expires_at?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/gift-cards';
-};
-
-export type PostV1GiftCardsResponses = {
-    /**
-     * The created gift card
-     */
-    201: GiftCard;
-};
-
-export type PostV1GiftCardsResponse = PostV1GiftCardsResponses[keyof PostV1GiftCardsResponses];
-
-export type PostV1GiftCardsRedeemData = {
-    body?: {
-        code: string;
-        amount: number;
-        order_id?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/gift-cards/redeem';
-};
-
-export type PostV1GiftCardsRedeemResponses = {
-    /**
-     * Gift card redeemed successfully
-     */
-    200: SuccessResponse;
-};
-
-export type PostV1GiftCardsRedeemResponse = PostV1GiftCardsRedeemResponses[keyof PostV1GiftCardsRedeemResponses];
-
-export type PatchV1SubscriptionsBySubscriptionIdData = {
-    body?: {
-        action: 'delay' | 'ship_now';
-        target_date?: string;
-    };
-    path: {
-        /**
-         * Subscription ID
-         */
-        subscriptionId: string;
-    };
-    query?: never;
-    url: '/v1/subscriptions/{subscriptionId}';
-};
-
-export type PatchV1SubscriptionsBySubscriptionIdResponses = {
-    /**
-     * Updated subscription
-     */
-    200: Subscription;
-};
-
-export type PatchV1SubscriptionsBySubscriptionIdResponse = PatchV1SubscriptionsBySubscriptionIdResponses[keyof PatchV1SubscriptionsBySubscriptionIdResponses];
-
-export type GetV1TicketsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by ticket status
-         */
-        status?: 'open' | 'pending_customer' | 'resolved' | 'archived';
-        /**
-         * Filter by category
-         */
-        category?: 'shipping' | 'return_refund' | 'defective_product' | 'payment' | 'product_question' | 'other';
-        /**
-         * Filter by customer email
-         */
-        customer_email?: string;
-        /**
-         * Number of items to return
-         */
-        limit?: number;
-    };
-    url: '/v1/tickets';
-};
-
-export type GetV1TicketsResponses = {
-    /**
-     * A list of tickets
-     */
-    200: TicketListResponse;
-};
-
-export type GetV1TicketsResponse = GetV1TicketsResponses[keyof GetV1TicketsResponses];
-
-export type PostV1TicketsData = {
-    body?: {
-        customer_email: string;
-        subject: string;
-        message: string;
-        category?: 'shipping' | 'return_refund' | 'defective_product' | 'payment' | 'product_question' | 'other';
-        order_id?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/tickets';
-};
-
-export type PostV1TicketsResponses = {
-    /**
-     * The created ticket
-     */
-    201: Ticket;
-};
-
-export type PostV1TicketsResponse = PostV1TicketsResponses[keyof PostV1TicketsResponses];
-
-export type GetV1TicketsByIdData = {
+export type GetV1CollectionsByHandleData = {
     body?: never;
     path: {
         /**
-         * Ticket ID
+         * Collection handle (slug)
          */
-        id: string;
+        handle: string;
     };
     query?: never;
-    url: '/v1/tickets/{id}';
+    url: '/v1/collections/{handle}';
 };
 
-export type GetV1TicketsByIdErrors = {
+export type GetV1CollectionsByHandleErrors = {
     /**
-     * Ticket not found
+     * Collection not found
      */
     404: unknown;
 };
 
-export type GetV1TicketsByIdResponses = {
+export type GetV1CollectionsByHandleResponses = {
     /**
-     * The ticket
+     * Collection details
      */
-    200: Ticket;
+    200: {
+        data: CollectionDetail;
+    };
 };
 
-export type GetV1TicketsByIdResponse = GetV1TicketsByIdResponses[keyof GetV1TicketsByIdResponses];
+export type GetV1CollectionsByHandleResponse = GetV1CollectionsByHandleResponses[keyof GetV1CollectionsByHandleResponses];
 
-export type PostV1TicketsByIdReplyData = {
-    body?: {
-        message: string;
-    };
+export type GetV1CollectionsByHandleProductsData = {
+    body?: never;
     path: {
         /**
-         * Ticket ID
+         * Collection handle (slug)
          */
-        id: string;
+        handle: string;
     };
-    query?: never;
-    url: '/v1/tickets/{id}/reply';
-};
-
-export type PostV1TicketsByIdReplyResponses = {
-    /**
-     * Reply sent successfully
-     */
-    200: SuccessResponse;
-};
-
-export type PostV1TicketsByIdReplyResponse = PostV1TicketsByIdReplyResponses[keyof PostV1TicketsByIdReplyResponses];
-
-export type GetV1DiscountsData = {
-    body?: never;
-    path?: never;
     query?: {
-        /**
-         * Filter by active status
-         */
-        active?: boolean;
-        /**
-         * Filter by discount type
-         */
-        type?: 'percentage' | 'fixed_amount' | 'free_shipping' | 'bxgy';
+        limit?: number;
+        offset?: number | null;
     };
-    url: '/v1/discounts';
+    url: '/v1/collections/{handle}/products';
 };
 
-export type GetV1DiscountsResponses = {
+export type GetV1CollectionsByHandleProductsErrors = {
     /**
-     * A list of discount codes
+     * Collection not found
      */
-    200: DiscountListResponse;
+    404: unknown;
 };
 
-export type GetV1DiscountsResponse = GetV1DiscountsResponses[keyof GetV1DiscountsResponses];
-
-export type PostV1DiscountsData = {
-    body?: {
-        code: string;
-        type: 'percentage' | 'fixed_amount' | 'free_shipping' | 'bxgy';
-        value: number;
-        starts_at?: string;
-        end_at?: string;
-        usage_limit_total?: number;
-        conditions?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/discounts';
-};
-
-export type PostV1DiscountsResponses = {
+export type GetV1CollectionsByHandleProductsResponses = {
     /**
-     * The created discount code
+     * Products in the collection
      */
-    201: DiscountCode;
+    200: CollectionProductsResponse;
 };
 
-export type PostV1DiscountsResponse = PostV1DiscountsResponses[keyof PostV1DiscountsResponses];
+export type GetV1CollectionsByHandleProductsResponse = GetV1CollectionsByHandleProductsResponses[keyof GetV1CollectionsByHandleProductsResponses];
 
-export type PostV1DiscountsValidateData = {
-    body?: {
-        code: string;
-        cart_total?: number;
-        cart_quantity?: number;
-        customer_tier?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/discounts/validate';
-};
-
-export type PostV1DiscountsValidateResponses = {
-    /**
-     * Validation result
-     */
-    200: DiscountValidation;
-};
-
-export type PostV1DiscountsValidateResponse = PostV1DiscountsValidateResponses[keyof PostV1DiscountsValidateResponses];
-
-export type PostV1ApprovalsByApprovalIdExecuteData = {
+export type GetV1ThemeData = {
     body?: never;
-    path: {
-        /**
-         * Approval ID
-         */
-        approvalId: string;
-    };
+    path?: never;
     query?: never;
-    url: '/v1/approvals/{approvalId}/execute';
+    url: '/v1/theme';
 };
 
-export type PostV1ApprovalsByApprovalIdExecuteResponses = {
+export type GetV1ThemeResponses = {
     /**
-     * Approval executed successfully
+     * Theme CSS variables as key-value pairs
      */
-    200: SuccessResponse;
+    200: ThemeResponse;
 };
 
-export type PostV1ApprovalsByApprovalIdExecuteResponse = PostV1ApprovalsByApprovalIdExecuteResponses[keyof PostV1ApprovalsByApprovalIdExecuteResponses];
+export type GetV1ThemeResponse = GetV1ThemeResponses[keyof GetV1ThemeResponses];
 
-export type PostV1ApprovalsByApprovalIdRejectData = {
-    body?: {
-        reason?: string;
-    };
-    path: {
-        /**
-         * Approval ID
-         */
-        approvalId: string;
-    };
-    query?: never;
-    url: '/v1/approvals/{approvalId}/reject';
-};
-
-export type PostV1ApprovalsByApprovalIdRejectResponses = {
-    /**
-     * Approval rejected successfully
-     */
-    200: SuccessResponse;
-};
-
-export type PostV1ApprovalsByApprovalIdRejectResponse = PostV1ApprovalsByApprovalIdRejectResponses[keyof PostV1ApprovalsByApprovalIdRejectResponses];
-
-export type GetV1UtilsGeocodeData = {
+export type GetV1ShippingRatesData = {
     body?: never;
     path?: never;
     query: {
         /**
-         * Address to geocode
+         * Cart ID
          */
-        address: string;
+        cart_id: string;
+        /**
+         * Market ID (defaults to domestic market)
+         */
+        market_id?: string;
+        /**
+         * ISO country code
+         */
+        country?: string;
     };
-    url: '/v1/utils/geocode';
+    url: '/v1/shipping/rates';
 };
 
-export type GetV1UtilsGeocodeResponses = {
+export type GetV1ShippingRatesErrors = {
     /**
-     * Geocode result
+     * Missing or invalid parameters
      */
-    200: GeocodeResult;
+    400: unknown;
 };
 
-export type GetV1UtilsGeocodeResponse = GetV1UtilsGeocodeResponses[keyof GetV1UtilsGeocodeResponses];
+export type GetV1ShippingRatesResponses = {
+    /**
+     * Available shipping rates grouped by delivery profile
+     */
+    200: ShippingRatesResponse;
+};
+
+export type GetV1ShippingRatesResponse = GetV1ShippingRatesResponses[keyof GetV1ShippingRatesResponses];
+
+export type GetV1PoliciesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Locale filter
+         */
+        locale?: string;
+    };
+    url: '/v1/policies';
+};
+
+export type GetV1PoliciesResponses = {
+    /**
+     * List of policies
+     */
+    200: PolicyListResponse;
+};
+
+export type GetV1PoliciesResponse = GetV1PoliciesResponses[keyof GetV1PoliciesResponses];
+
+export type GetV1PoliciesByTypeData = {
+    body?: never;
+    path: {
+        /**
+         * Policy type slug (e.g. privacy-policy, terms-of-service)
+         */
+        type: string;
+    };
+    query?: {
+        /**
+         * Locale filter
+         */
+        locale?: string;
+    };
+    url: '/v1/policies/{type}';
+};
+
+export type GetV1PoliciesByTypeErrors = {
+    /**
+     * Policy not found
+     */
+    404: unknown;
+};
+
+export type GetV1PoliciesByTypeResponses = {
+    /**
+     * Policy detail
+     */
+    200: PolicyDetailResponse;
+};
+
+export type GetV1PoliciesByTypeResponse = GetV1PoliciesByTypeResponses[keyof GetV1PoliciesByTypeResponses];

@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteV1CartsByIdItemsByLineIdData, DeleteV1CartsByIdItemsByLineIdErrors, DeleteV1CartsByIdItemsByLineIdResponses, GetV1CartsByIdData, GetV1CartsByIdErrors, GetV1CartsByIdResponses, GetV1CollectionsData, GetV1CollectionsResponses, GetV1DiscountsData, GetV1DiscountsResponses, GetV1GiftCardsData, GetV1GiftCardsResponses, GetV1InventoryData, GetV1InventoryResponses, GetV1LoyaltyData, GetV1LoyaltyReferralData, GetV1LoyaltyReferralResponses, GetV1LoyaltyResponses, GetV1OrdersData, GetV1OrdersResponses, GetV1ProductsByIdData, GetV1ProductsByIdErrors, GetV1ProductsByIdResponses, GetV1ProductsData, GetV1ProductsResponses, GetV1TicketsByIdData, GetV1TicketsByIdErrors, GetV1TicketsByIdResponses, GetV1TicketsData, GetV1TicketsResponses, GetV1UtilsGeocodeData, GetV1UtilsGeocodeResponses, PatchV1OrdersByOrderIdShippingAddressData, PatchV1OrdersByOrderIdShippingAddressErrors, PatchV1OrdersByOrderIdShippingAddressResponses, PatchV1SubscriptionsBySubscriptionIdData, PatchV1SubscriptionsBySubscriptionIdResponses, PostV1ApprovalsByApprovalIdExecuteData, PostV1ApprovalsByApprovalIdExecuteResponses, PostV1ApprovalsByApprovalIdRejectData, PostV1ApprovalsByApprovalIdRejectResponses, PostV1CartsByIdItemsData, PostV1CartsByIdItemsErrors, PostV1CartsByIdItemsResponses, PostV1CartsData, PostV1CartsResponses, PostV1CheckoutStripeData, PostV1CheckoutStripeResponses, PostV1DiscountsData, PostV1DiscountsResponses, PostV1DiscountsValidateData, PostV1DiscountsValidateResponses, PostV1GiftCardsData, PostV1GiftCardsRedeemData, PostV1GiftCardsRedeemResponses, PostV1GiftCardsResponses, PostV1InventoryData, PostV1InventoryResponses, PostV1LoyaltyRedeemData, PostV1LoyaltyRedeemResponses, PostV1OrdersByOrderIdCancelData, PostV1OrdersByOrderIdCancelErrors, PostV1OrdersByOrderIdCancelResponses, PostV1OrdersByOrderIdFulfillData, PostV1OrdersByOrderIdFulfillResponses, PostV1OrdersByOrderIdRefundData, PostV1OrdersByOrderIdRefundResponses, PostV1OrdersByOrderIdResendConfirmationData, PostV1OrdersByOrderIdResendConfirmationErrors, PostV1OrdersByOrderIdResendConfirmationResponses, PostV1OrdersByOrderIdResendInvoiceData, PostV1OrdersByOrderIdResendInvoiceErrors, PostV1OrdersByOrderIdResendInvoiceResponses, PostV1TicketsByIdReplyData, PostV1TicketsByIdReplyResponses, PostV1TicketsData, PostV1TicketsResponses, PutV1CartsByIdItemsByLineIdData, PutV1CartsByIdItemsByLineIdErrors, PutV1CartsByIdItemsByLineIdResponses } from './types.gen';
+import type { DeleteV1CartsByIdItemsByLineIdData, DeleteV1CartsByIdItemsByLineIdErrors, DeleteV1CartsByIdItemsByLineIdResponses, GetV1CartsByIdData, GetV1CartsByIdErrors, GetV1CartsByIdResponses, GetV1CollectionsByHandleData, GetV1CollectionsByHandleErrors, GetV1CollectionsByHandleProductsData, GetV1CollectionsByHandleProductsErrors, GetV1CollectionsByHandleProductsResponses, GetV1CollectionsByHandleResponses, GetV1CollectionsData, GetV1CollectionsResponses, GetV1PoliciesByTypeData, GetV1PoliciesByTypeErrors, GetV1PoliciesByTypeResponses, GetV1PoliciesData, GetV1PoliciesResponses, GetV1ProductsByIdData, GetV1ProductsByIdErrors, GetV1ProductsByIdResponses, GetV1ProductsData, GetV1ProductsResponses, GetV1ShippingRatesData, GetV1ShippingRatesErrors, GetV1ShippingRatesResponses, GetV1ThemeData, GetV1ThemeResponses, PatchV1OrdersByOrderIdShippingAddressData, PatchV1OrdersByOrderIdShippingAddressErrors, PatchV1OrdersByOrderIdShippingAddressResponses, PostV1CartsByIdItemsData, PostV1CartsByIdItemsErrors, PostV1CartsByIdItemsResponses, PostV1CartsData, PostV1CartsResponses, PostV1CheckoutStripeData, PostV1CheckoutStripeResponses, PostV1OrdersByOrderIdCancelData, PostV1OrdersByOrderIdCancelErrors, PostV1OrdersByOrderIdCancelResponses, PostV1OrdersByOrderIdResendConfirmationData, PostV1OrdersByOrderIdResendConfirmationErrors, PostV1OrdersByOrderIdResendConfirmationResponses, PostV1OrdersByOrderIdResendInvoiceData, PostV1OrdersByOrderIdResendInvoiceErrors, PostV1OrdersByOrderIdResendInvoiceResponses, PutV1CartsByIdItemsByLineIdData, PutV1CartsByIdItemsByLineIdErrors, PutV1CartsByIdItemsByLineIdResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -194,291 +194,67 @@ export const postV1CheckoutStripe = <ThrowOnError extends boolean = false>(optio
 });
 
 /**
- * Retrieve a list of orders
+ * Get collection
  *
- * List orders
+ * Get a single collection by handle
  */
-export const getV1Orders = <ThrowOnError extends boolean = false>(options?: Options<GetV1OrdersData, ThrowOnError>) => (options?.client ?? client).get<GetV1OrdersResponses, unknown, ThrowOnError>({
+export const getV1CollectionsByHandle = <ThrowOnError extends boolean = false>(options: Options<GetV1CollectionsByHandleData, ThrowOnError>) => (options.client ?? client).get<GetV1CollectionsByHandleResponses, GetV1CollectionsByHandleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/orders',
+    url: '/v1/collections/{handle}',
     ...options
 });
 
 /**
- * Fulfill order
+ * Get collection products
  *
- * Fulfill an order and optionally add tracking info
+ * List products in a collection
  */
-export const postV1OrdersByOrderIdFulfill = <ThrowOnError extends boolean = false>(options: Options<PostV1OrdersByOrderIdFulfillData, ThrowOnError>) => (options.client ?? client).post<PostV1OrdersByOrderIdFulfillResponses, unknown, ThrowOnError>({
+export const getV1CollectionsByHandleProducts = <ThrowOnError extends boolean = false>(options: Options<GetV1CollectionsByHandleProductsData, ThrowOnError>) => (options.client ?? client).get<GetV1CollectionsByHandleProductsResponses, GetV1CollectionsByHandleProductsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/orders/{orderId}/fulfill',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Refund order
- *
- * Refund an order fully or partially
- */
-export const postV1OrdersByOrderIdRefund = <ThrowOnError extends boolean = false>(options: Options<PostV1OrdersByOrderIdRefundData, ThrowOnError>) => (options.client ?? client).post<PostV1OrdersByOrderIdRefundResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/orders/{orderId}/refund',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Get inventory
- *
- * Get inventory levels
- */
-export const getV1Inventory = <ThrowOnError extends boolean = false>(options?: Options<GetV1InventoryData, ThrowOnError>) => (options?.client ?? client).get<GetV1InventoryResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/inventory',
+    url: '/v1/collections/{handle}/products',
     ...options
 });
 
 /**
- * Update inventory
+ * Get theme
  *
- * Update inventory level for a variant
+ * Get workspace theme CSS custom properties
  */
-export const postV1Inventory = <ThrowOnError extends boolean = false>(options?: Options<PostV1InventoryData, ThrowOnError>) => (options?.client ?? client).post<PostV1InventoryResponses, unknown, ThrowOnError>({
+export const getV1Theme = <ThrowOnError extends boolean = false>(options?: Options<GetV1ThemeData, ThrowOnError>) => (options?.client ?? client).get<GetV1ThemeResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/inventory',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers
-    }
-});
-
-/**
- * Get loyalty balance
- *
- * Get loyalty point balance for a contact
- */
-export const getV1Loyalty = <ThrowOnError extends boolean = false>(options: Options<GetV1LoyaltyData, ThrowOnError>) => (options.client ?? client).get<GetV1LoyaltyResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/loyalty',
+    url: '/v1/theme',
     ...options
 });
 
 /**
- * Redeem loyalty points
+ * Get shipping rates
  *
- * Redeem loyalty points
+ * Calculate shipping rates for a cart
  */
-export const postV1LoyaltyRedeem = <ThrowOnError extends boolean = false>(options?: Options<PostV1LoyaltyRedeemData, ThrowOnError>) => (options?.client ?? client).post<PostV1LoyaltyRedeemResponses, unknown, ThrowOnError>({
+export const getV1ShippingRates = <ThrowOnError extends boolean = false>(options: Options<GetV1ShippingRatesData, ThrowOnError>) => (options.client ?? client).get<GetV1ShippingRatesResponses, GetV1ShippingRatesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/loyalty/redeem',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers
-    }
-});
-
-/**
- * Get referral info
- *
- * Get referral info for a contact
- */
-export const getV1LoyaltyReferral = <ThrowOnError extends boolean = false>(options: Options<GetV1LoyaltyReferralData, ThrowOnError>) => (options.client ?? client).get<GetV1LoyaltyReferralResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/loyalty/referral',
+    url: '/v1/shipping/rates',
     ...options
 });
 
 /**
- * List gift cards
+ * List policies
  *
- * List gift cards
+ * List all legal policies for the workspace
  */
-export const getV1GiftCards = <ThrowOnError extends boolean = false>(options?: Options<GetV1GiftCardsData, ThrowOnError>) => (options?.client ?? client).get<GetV1GiftCardsResponses, unknown, ThrowOnError>({
+export const getV1Policies = <ThrowOnError extends boolean = false>(options?: Options<GetV1PoliciesData, ThrowOnError>) => (options?.client ?? client).get<GetV1PoliciesResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/gift-cards',
+    url: '/v1/policies',
     ...options
 });
 
 /**
- * Create gift card
+ * Get policy
  *
- * Create a new gift card
+ * Get a specific policy by type
  */
-export const postV1GiftCards = <ThrowOnError extends boolean = false>(options?: Options<PostV1GiftCardsData, ThrowOnError>) => (options?.client ?? client).post<PostV1GiftCardsResponses, unknown, ThrowOnError>({
+export const getV1PoliciesByType = <ThrowOnError extends boolean = false>(options: Options<GetV1PoliciesByTypeData, ThrowOnError>) => (options.client ?? client).get<GetV1PoliciesByTypeResponses, GetV1PoliciesByTypeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/gift-cards',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers
-    }
-});
-
-/**
- * Redeem gift card
- *
- * Redeem a gift card
- */
-export const postV1GiftCardsRedeem = <ThrowOnError extends boolean = false>(options?: Options<PostV1GiftCardsRedeemData, ThrowOnError>) => (options?.client ?? client).post<PostV1GiftCardsRedeemResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/gift-cards/redeem',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers
-    }
-});
-
-/**
- * Update subscription
- *
- * Update a subscription (delay or ship now)
- */
-export const patchV1SubscriptionsBySubscriptionId = <ThrowOnError extends boolean = false>(options: Options<PatchV1SubscriptionsBySubscriptionIdData, ThrowOnError>) => (options.client ?? client).patch<PatchV1SubscriptionsBySubscriptionIdResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/subscriptions/{subscriptionId}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * List tickets
- *
- * List support tickets
- */
-export const getV1Tickets = <ThrowOnError extends boolean = false>(options?: Options<GetV1TicketsData, ThrowOnError>) => (options?.client ?? client).get<GetV1TicketsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/tickets',
-    ...options
-});
-
-/**
- * Create ticket
- *
- * Create a new support ticket
- */
-export const postV1Tickets = <ThrowOnError extends boolean = false>(options?: Options<PostV1TicketsData, ThrowOnError>) => (options?.client ?? client).post<PostV1TicketsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/tickets',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers
-    }
-});
-
-/**
- * Get ticket
- *
- * Get a single support ticket
- */
-export const getV1TicketsById = <ThrowOnError extends boolean = false>(options: Options<GetV1TicketsByIdData, ThrowOnError>) => (options.client ?? client).get<GetV1TicketsByIdResponses, GetV1TicketsByIdErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/tickets/{id}',
-    ...options
-});
-
-/**
- * Reply to ticket
- *
- * Reply to a support ticket
- */
-export const postV1TicketsByIdReply = <ThrowOnError extends boolean = false>(options: Options<PostV1TicketsByIdReplyData, ThrowOnError>) => (options.client ?? client).post<PostV1TicketsByIdReplyResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/tickets/{id}/reply',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * List discounts
- *
- * List discount codes
- */
-export const getV1Discounts = <ThrowOnError extends boolean = false>(options?: Options<GetV1DiscountsData, ThrowOnError>) => (options?.client ?? client).get<GetV1DiscountsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/discounts',
-    ...options
-});
-
-/**
- * Create discount code
- *
- * Create a new discount code
- */
-export const postV1Discounts = <ThrowOnError extends boolean = false>(options?: Options<PostV1DiscountsData, ThrowOnError>) => (options?.client ?? client).post<PostV1DiscountsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/discounts',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers
-    }
-});
-
-/**
- * Validate discount code
- *
- * Validate a discount code against cart context
- */
-export const postV1DiscountsValidate = <ThrowOnError extends boolean = false>(options?: Options<PostV1DiscountsValidateData, ThrowOnError>) => (options?.client ?? client).post<PostV1DiscountsValidateResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/discounts/validate',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers
-    }
-});
-
-/**
- * Execute approval
- *
- * Execute a pending approval
- */
-export const postV1ApprovalsByApprovalIdExecute = <ThrowOnError extends boolean = false>(options: Options<PostV1ApprovalsByApprovalIdExecuteData, ThrowOnError>) => (options.client ?? client).post<PostV1ApprovalsByApprovalIdExecuteResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/approvals/{approvalId}/execute',
-    ...options
-});
-
-/**
- * Reject approval
- *
- * Reject a pending approval
- */
-export const postV1ApprovalsByApprovalIdReject = <ThrowOnError extends boolean = false>(options: Options<PostV1ApprovalsByApprovalIdRejectData, ThrowOnError>) => (options.client ?? client).post<PostV1ApprovalsByApprovalIdRejectResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/approvals/{approvalId}/reject',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Geocode address
- *
- * Geocode an address to coordinates
- */
-export const getV1UtilsGeocode = <ThrowOnError extends boolean = false>(options: Options<GetV1UtilsGeocodeData, ThrowOnError>) => (options.client ?? client).get<GetV1UtilsGeocodeResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/v1/utils/geocode',
+    url: '/v1/policies/{type}',
     ...options
 });

@@ -25,37 +25,21 @@ __export(index_exports, {
   deleteV1CartsByIdItemsByLineId: () => deleteV1CartsByIdItemsByLineId,
   getV1CartsById: () => getV1CartsById,
   getV1Collections: () => getV1Collections,
-  getV1Discounts: () => getV1Discounts,
-  getV1GiftCards: () => getV1GiftCards,
-  getV1Inventory: () => getV1Inventory,
-  getV1Loyalty: () => getV1Loyalty,
-  getV1LoyaltyReferral: () => getV1LoyaltyReferral,
-  getV1Orders: () => getV1Orders,
+  getV1CollectionsByHandle: () => getV1CollectionsByHandle,
+  getV1CollectionsByHandleProducts: () => getV1CollectionsByHandleProducts,
+  getV1Policies: () => getV1Policies,
+  getV1PoliciesByType: () => getV1PoliciesByType,
   getV1Products: () => getV1Products,
   getV1ProductsById: () => getV1ProductsById,
-  getV1Tickets: () => getV1Tickets,
-  getV1TicketsById: () => getV1TicketsById,
-  getV1UtilsGeocode: () => getV1UtilsGeocode,
+  getV1ShippingRates: () => getV1ShippingRates,
+  getV1Theme: () => getV1Theme,
   patchV1OrdersByOrderIdShippingAddress: () => patchV1OrdersByOrderIdShippingAddress,
-  patchV1SubscriptionsBySubscriptionId: () => patchV1SubscriptionsBySubscriptionId,
-  postV1ApprovalsByApprovalIdExecute: () => postV1ApprovalsByApprovalIdExecute,
-  postV1ApprovalsByApprovalIdReject: () => postV1ApprovalsByApprovalIdReject,
   postV1Carts: () => postV1Carts,
   postV1CartsByIdItems: () => postV1CartsByIdItems,
   postV1CheckoutStripe: () => postV1CheckoutStripe,
-  postV1Discounts: () => postV1Discounts,
-  postV1DiscountsValidate: () => postV1DiscountsValidate,
-  postV1GiftCards: () => postV1GiftCards,
-  postV1GiftCardsRedeem: () => postV1GiftCardsRedeem,
-  postV1Inventory: () => postV1Inventory,
-  postV1LoyaltyRedeem: () => postV1LoyaltyRedeem,
   postV1OrdersByOrderIdCancel: () => postV1OrdersByOrderIdCancel,
-  postV1OrdersByOrderIdFulfill: () => postV1OrdersByOrderIdFulfill,
-  postV1OrdersByOrderIdRefund: () => postV1OrdersByOrderIdRefund,
   postV1OrdersByOrderIdResendConfirmation: () => postV1OrdersByOrderIdResendConfirmation,
   postV1OrdersByOrderIdResendInvoice: () => postV1OrdersByOrderIdResendInvoice,
-  postV1Tickets: () => postV1Tickets,
-  postV1TicketsByIdReply: () => postV1TicketsByIdReply,
   putV1CartsByIdItemsByLineId: () => putV1CartsByIdItemsByLineId
 });
 module.exports = __toCommonJS(index_exports);
@@ -946,162 +930,34 @@ var postV1CheckoutStripe = (options) => (options?.client ?? client).post({
     ...options?.headers
   }
 });
-var getV1Orders = (options) => (options?.client ?? client).get({
+var getV1CollectionsByHandle = (options) => (options.client ?? client).get({
   security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/orders",
+  url: "/v1/collections/{handle}",
   ...options
 });
-var postV1OrdersByOrderIdFulfill = (options) => (options.client ?? client).post({
+var getV1CollectionsByHandleProducts = (options) => (options.client ?? client).get({
   security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/orders/{orderId}/fulfill",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options.headers
-  }
-});
-var postV1OrdersByOrderIdRefund = (options) => (options.client ?? client).post({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/orders/{orderId}/refund",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options.headers
-  }
-});
-var getV1Inventory = (options) => (options?.client ?? client).get({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/inventory",
+  url: "/v1/collections/{handle}/products",
   ...options
 });
-var postV1Inventory = (options) => (options?.client ?? client).post({
+var getV1Theme = (options) => (options?.client ?? client).get({
   security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/inventory",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options?.headers
-  }
-});
-var getV1Loyalty = (options) => (options.client ?? client).get({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/loyalty",
+  url: "/v1/theme",
   ...options
 });
-var postV1LoyaltyRedeem = (options) => (options?.client ?? client).post({
+var getV1ShippingRates = (options) => (options.client ?? client).get({
   security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/loyalty/redeem",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options?.headers
-  }
-});
-var getV1LoyaltyReferral = (options) => (options.client ?? client).get({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/loyalty/referral",
+  url: "/v1/shipping/rates",
   ...options
 });
-var getV1GiftCards = (options) => (options?.client ?? client).get({
+var getV1Policies = (options) => (options?.client ?? client).get({
   security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/gift-cards",
+  url: "/v1/policies",
   ...options
 });
-var postV1GiftCards = (options) => (options?.client ?? client).post({
+var getV1PoliciesByType = (options) => (options.client ?? client).get({
   security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/gift-cards",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options?.headers
-  }
-});
-var postV1GiftCardsRedeem = (options) => (options?.client ?? client).post({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/gift-cards/redeem",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options?.headers
-  }
-});
-var patchV1SubscriptionsBySubscriptionId = (options) => (options.client ?? client).patch({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/subscriptions/{subscriptionId}",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options.headers
-  }
-});
-var getV1Tickets = (options) => (options?.client ?? client).get({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/tickets",
-  ...options
-});
-var postV1Tickets = (options) => (options?.client ?? client).post({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/tickets",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options?.headers
-  }
-});
-var getV1TicketsById = (options) => (options.client ?? client).get({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/tickets/{id}",
-  ...options
-});
-var postV1TicketsByIdReply = (options) => (options.client ?? client).post({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/tickets/{id}/reply",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options.headers
-  }
-});
-var getV1Discounts = (options) => (options?.client ?? client).get({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/discounts",
-  ...options
-});
-var postV1Discounts = (options) => (options?.client ?? client).post({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/discounts",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options?.headers
-  }
-});
-var postV1DiscountsValidate = (options) => (options?.client ?? client).post({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/discounts/validate",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options?.headers
-  }
-});
-var postV1ApprovalsByApprovalIdExecute = (options) => (options.client ?? client).post({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/approvals/{approvalId}/execute",
-  ...options
-});
-var postV1ApprovalsByApprovalIdReject = (options) => (options.client ?? client).post({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/approvals/{approvalId}/reject",
-  ...options,
-  headers: {
-    "Content-Type": "application/json",
-    ...options.headers
-  }
-});
-var getV1UtilsGeocode = (options) => (options.client ?? client).get({
-  security: [{ scheme: "bearer", type: "http" }],
-  url: "/v1/utils/geocode",
+  url: "/v1/policies/{type}",
   ...options
 });
 
@@ -1136,7 +992,19 @@ var Reponse = class {
      * List all product collections/categories.
      * @param params.query.limit - Number of collections to return (default 50)
      */
-    listCollections: async (params) => getV1Collections(params)
+    listCollections: async (params) => getV1Collections(params),
+    /**
+     * Get a single collection by its handle/slug with metadata and product count.
+     * @param params.path.handle - The collection handle
+     */
+    getCollection: async (params) => getV1CollectionsByHandle(params),
+    /**
+     * List products belonging to a specific collection.
+     * @param params.path.handle - The collection handle
+     * @param params.query.limit - Number of products to return (1-100, default 50)
+     * @param params.query.offset - Pagination offset (default 0)
+     */
+    getCollectionProducts: async (params) => getV1CollectionsByHandleProducts(params)
   };
   // ─── Cart ─────────────────────────────────────────────────
   /** Shopping cart operations: create, read, add/update/remove items. */
@@ -1177,214 +1045,60 @@ var Reponse = class {
      * @param params.body.success_url - Redirect URL after successful payment
      * @param params.body.cancel_url - Redirect URL if payment is cancelled
      */
-    createCheckout: async (params) => postV1CheckoutStripe(params)
+    createCheckout: async (params) => postV1CheckoutStripe(params),
+    /**
+     * Calculate shipping rates for a cart.
+     * @param params.query.cart_id - Cart UUID
+     * @param params.query.market_id - Optional market UUID
+     * @param params.query.country - Optional ISO country code
+     */
+    getShippingRates: async (params) => getV1ShippingRates(params)
   };
   // ─── Orders ───────────────────────────────────────────────
-  /** Order management: list, fulfill, refund, cancel, and notifications. */
+  /** Order management: update address, resend emails, cancel. */
   orders = {
-    /**
-     * List orders with optional status filter.
-     * @param params.query.status - Filter by status (paid, fulfilled, shipped, cancelled, refunded)
-     * @param params.query.limit - Number of orders to return (default 50)
-     */
-    list: async (params) => getV1Orders(params),
-    /**
-     * Mark an order as fulfilled and optionally attach tracking info.
-     * @param params.path.orderId - Order UUID
-     * @param params.body.tracking_number - Shipment tracking number
-     * @param params.body.tracking_company - Carrier name
-     * @param params.body.tracking_url - Tracking URL
-     * @param params.body.send_email - Send notification email (default true)
-     */
-    fulfill: async (params) => postV1OrdersByOrderIdFulfill(params),
-    /**
-     * Refund an order (full or partial).
-     * @param params.path.orderId - Order UUID
-     * @param params.body.amount - Partial refund amount (omit for full refund)
-     * @param params.body.reason - Reason for the refund
-     */
-    refund: async (params) => postV1OrdersByOrderIdRefund(params),
     /**
      * Update the shipping address of an existing order.
      * @param params.path.orderId - Order UUID
      * @param params.body.shipping_address - New address object
-     * @param params.body.conversation_id - Conversation UUID for identity verification
      */
     updateShippingAddress: async (params) => patchV1OrdersByOrderIdShippingAddress(params),
     /**
-     * Resend the order confirmation email. Rate limited: max 3 per hour.
+     * Resend the order confirmation email.
      * @param params.path.orderId - Order UUID
-     * @param params.body.conversation_id - Conversation UUID for identity verification
      */
     resendConfirmation: async (params) => postV1OrdersByOrderIdResendConfirmation(params),
     /**
-     * Resend the invoice email with PDF. Rate limited: max 3 per hour.
+     * Resend the invoice email with PDF.
      * @param params.path.orderId - Order UUID
-     * @param params.body.conversation_id - Conversation UUID for identity verification
      */
     resendInvoice: async (params) => postV1OrdersByOrderIdResendInvoice(params),
     /**
      * Cancel an order and trigger a Stripe refund.
      * @param params.path.orderId - Order UUID
      * @param params.body.reason - Cancellation reason enum
-     * @param params.body.conversation_id - Conversation UUID for identity verification
      */
     cancel: async (params) => postV1OrdersByOrderIdCancel(params)
   };
-  // ─── Inventory ────────────────────────────────────────────
-  /** Inventory management: check and update stock levels. */
-  inventory = {
+  // TODO: Add to OpenAPI spec when needed:
+  // inventory, discounts, loyalty, giftCards, tickets, subscriptions, approvals, utils
+  // ─── Storefront ──────────────────────────────────────────
+  /** Storefront operations: theme, legal policies. */
+  storefront = {
     /**
-     * Get current inventory levels for a variant, SKU, or product.
-     * @param params.query.variant_id - Variant UUID
-     * @param params.query.sku - Product/variant SKU
-     * @param params.query.product_id - Product UUID
+     * Get workspace theme as CSS custom properties.
      */
-    get: async (params) => getV1Inventory(params),
+    getTheme: async (params) => getV1Theme(params),
     /**
-     * Set or adjust inventory quantity for a variant.
-     * @param params.body.variant_id - Variant UUID
-     * @param params.body.quantity - Quantity value
-     * @param params.body.mode - 'set' to replace, 'adjust' to add/subtract
-     * @param params.body.reason - Reason for the change
+     * List all legal policies for the workspace.
+     * @param params.query.locale - Locale filter (default "fr")
      */
-    update: async (params) => postV1Inventory(params)
-  };
-  // ─── Discounts ────────────────────────────────────────────
-  /** Discount code operations: list, create, and validate promo codes. */
-  discounts = {
+    listPolicies: async (params) => getV1Policies(params),
     /**
-     * List discount codes. Filter by active status or type.
-     * @param params.query.active - Filter by active status
-     * @param params.query.type - Filter by type (percentage, fixed_amount, free_shipping, bxgy)
+     * Get a specific legal policy by type.
+     * @param params.path.type - Policy type slug (e.g. "privacy-policy")
      */
-    list: async (params) => getV1Discounts(params),
-    /**
-     * Validate a discount code and calculate potential savings.
-     * @param params.body.code - The discount code to validate
-     * @param params.body.cart_total - Cart total for savings calculation
-     * @param params.body.cart_quantity - Number of items in cart
-     */
-    validate: async (params) => postV1DiscountsValidate(params),
-    /**
-     * Create a new discount code.
-     * @param params.body.code - Code text (will be uppercased)
-     * @param params.body.type - Type: percentage, fixed_amount, free_shipping, bxgy
-     * @param params.body.value - Discount value
-     */
-    create: async (params) => postV1Discounts(params)
-  };
-  // ─── Loyalty ──────────────────────────────────────────────
-  /** Loyalty program: points balance, redemption, and referrals. */
-  loyalty = {
-    /**
-     * Get the loyalty points balance for a contact.
-     * @param params.query.contact_id - Contact UUID
-     */
-    getBalance: async (params) => getV1Loyalty(params),
-    /**
-     * Redeem loyalty points, optionally against a specific order.
-     * @param params.body.contact_id - Contact UUID
-     * @param params.body.points - Number of points to redeem
-     * @param params.body.order_id - Order UUID to apply the redemption to
-     */
-    redeem: async (params) => postV1LoyaltyRedeem(params),
-    /**
-     * Get referral program info for a contact (link, stats, rewards).
-     * @param params.query.contact_id - Contact UUID
-     */
-    getReferralInfo: async (params) => getV1LoyaltyReferral(params)
-  };
-  // ─── Gift Cards ───────────────────────────────────────────
-  /** Gift card operations: list, create, and redeem gift cards. */
-  giftCards = {
-    /**
-     * List gift cards in the workspace.
-     * @param params.query.limit - Number to return (default 50)
-     */
-    list: async (params) => getV1GiftCards(params),
-    /**
-     * Create a new gift card with an initial monetary value.
-     * @param params.body.initial_value - Initial value
-     * @param params.body.currency - Currency code (default EUR)
-     * @param params.body.code - Custom code (auto-generated if omitted)
-     * @param params.body.expires_at - Expiration date (ISO 8601)
-     */
-    create: async (params) => postV1GiftCards(params),
-    /**
-     * Redeem a gift card by applying an amount against it.
-     * @param params.body.code - Gift card code
-     * @param params.body.amount - Amount to redeem
-     * @param params.body.order_id - Order UUID to apply to
-     */
-    redeem: async (params) => postV1GiftCardsRedeem(params)
-  };
-  // ─── Tickets ──────────────────────────────────────────────
-  /** Support ticket operations: list, create, read, and reply. */
-  tickets = {
-    /**
-     * List support tickets with optional filters.
-     * @param params.query.status - Filter by status (open, pending_customer, resolved, archived)
-     * @param params.query.category - Filter by category
-     * @param params.query.customer_email - Filter by customer email
-     * @param params.query.limit - Number to return (default 20)
-     */
-    list: async (params) => getV1Tickets(params),
-    /**
-     * Get a single ticket by ID with full details.
-     * @param params.path.id - Ticket UUID
-     */
-    get: async (params) => getV1TicketsById(params),
-    /**
-     * Create a new support ticket.
-     * @param params.body.customer_email - Customer email
-     * @param params.body.subject - Ticket subject
-     * @param params.body.message - Initial message body
-     * @param params.body.category - Ticket category
-     * @param params.body.order_id - Related order UUID
-     */
-    create: async (params) => postV1Tickets(params),
-    /**
-     * Reply to a support ticket.
-     * @param params.path.id - Ticket UUID
-     * @param params.body.message - Reply message body
-     */
-    reply: async (params) => postV1TicketsByIdReply(params)
-  };
-  // ─── Subscriptions ────────────────────────────────────────
-  /** Subscription management: delay or trigger shipments. */
-  subscriptions = {
-    /**
-     * Update a subscription — delay next shipment or trigger immediate shipment.
-     * @param params.path.subscriptionId - Subscription UUID
-     * @param params.body.action - 'delay' or 'ship_now'
-     * @param params.body.target_date - New date for delay action (ISO 8601)
-     */
-    update: async (params) => patchV1SubscriptionsBySubscriptionId(params)
-  };
-  // ─── Approvals ────────────────────────────────────────────
-  /** Approval workflow: execute or reject pending approval requests. */
-  approvals = {
-    /**
-     * Execute (approve) a pending approval request.
-     * @param params.path.approvalId - Approval UUID
-     */
-    execute: async (params) => postV1ApprovalsByApprovalIdExecute(params),
-    /**
-     * Reject a pending approval request.
-     * @param params.path.approvalId - Approval UUID
-     * @param params.body.reason - Reason for rejection
-     */
-    reject: async (params) => postV1ApprovalsByApprovalIdReject(params)
-  };
-  // ─── Utilities ────────────────────────────────────────────
-  /** Utility operations: geocoding and address resolution. */
-  utils = {
-    /**
-     * Geocode a free-form address into coordinates and structured components.
-     * @param params.query.address - The address string to geocode
-     */
-    geocodeAddress: async (params) => getV1UtilsGeocode(params)
+    getPolicy: async (params) => getV1PoliciesByType(params)
   };
 };
 // Annotate the CommonJS export names for ESM import in node:
@@ -1394,36 +1108,20 @@ var Reponse = class {
   deleteV1CartsByIdItemsByLineId,
   getV1CartsById,
   getV1Collections,
-  getV1Discounts,
-  getV1GiftCards,
-  getV1Inventory,
-  getV1Loyalty,
-  getV1LoyaltyReferral,
-  getV1Orders,
+  getV1CollectionsByHandle,
+  getV1CollectionsByHandleProducts,
+  getV1Policies,
+  getV1PoliciesByType,
   getV1Products,
   getV1ProductsById,
-  getV1Tickets,
-  getV1TicketsById,
-  getV1UtilsGeocode,
+  getV1ShippingRates,
+  getV1Theme,
   patchV1OrdersByOrderIdShippingAddress,
-  patchV1SubscriptionsBySubscriptionId,
-  postV1ApprovalsByApprovalIdExecute,
-  postV1ApprovalsByApprovalIdReject,
   postV1Carts,
   postV1CartsByIdItems,
   postV1CheckoutStripe,
-  postV1Discounts,
-  postV1DiscountsValidate,
-  postV1GiftCards,
-  postV1GiftCardsRedeem,
-  postV1Inventory,
-  postV1LoyaltyRedeem,
   postV1OrdersByOrderIdCancel,
-  postV1OrdersByOrderIdFulfill,
-  postV1OrdersByOrderIdRefund,
   postV1OrdersByOrderIdResendConfirmation,
   postV1OrdersByOrderIdResendInvoice,
-  postV1Tickets,
-  postV1TicketsByIdReply,
   putV1CartsByIdItemsByLineId
 });

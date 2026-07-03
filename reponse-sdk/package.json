@@ -1,6 +1,6 @@
 {
   "name": "@reponseai/sdk",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Official TypeScript SDK for Reponse Headless Commerce API",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

@@ -10,6 +10,15 @@ type ProductVariant = {
     sku: string | null;
     option_values: Array<string> | null;
 };
+type ProductMetafield = {
+    id: string;
+    namespace: string;
+    key: string;
+    value: string | null;
+    type: 'single_line_text' | 'multi_line_text' | 'number_integer' | 'number_decimal' | 'boolean' | 'json' | 'date' | 'url' | 'color' | 'dimension' | 'weight';
+    createdAt?: string;
+    updatedAt?: string;
+};
 type Product = {
     id: string;
     title: string;
@@ -24,6 +33,10 @@ type Product = {
     images: Array<string>;
     status: 'active' | 'draft' | 'archived';
     variants?: Array<ProductVariant>;
+    /**
+     * Included by default on detail, opt-in on list (?include=metafields)
+     */
+    metafields?: Array<ProductMetafield>;
     created_at: string;
     updated_at: string;
 };
@@ -81,117 +94,60 @@ type UpdateCartItemInput = {
      */
     quantity: number;
 };
-type Order = {
+type CollectionDetail = {
     id: string;
-    status: 'paid' | 'fulfilled' | 'shipped' | 'cancelled' | 'refunded';
-    customer_email?: string;
+    title: string;
+    handle: string;
+    description: string | null;
+    image_url: string | null;
+    seo_title: string | null;
+    seo_description: string | null;
+    product_count: number;
+};
+type CollectionProductsResponse = {
+    products: Array<Product>;
     total: number;
+    limit: number;
+    offset: number;
+};
+/**
+ * CSS custom properties keyed by variable name (e.g. --rp-color-primary)
+ */
+type ThemeResponse = {
+    [key: string]: string;
+};
+type ShippingRate = {
+    rate_id: string;
+    name: string;
+    price: number;
     currency: string;
-    items: Array<{
-        product_id?: string;
-        variant_id?: string;
-        quantity?: number;
-        price?: number;
-    }>;
-    shipping_address?: {
-        address1?: string;
-        address2?: string;
-        city?: string;
-        zip?: string;
-        country?: string;
-    } | null;
-    tracking_number?: string | null;
-    tracking_company?: string | null;
-    tracking_url?: string | null;
-    created_at: string;
-    updated_at: string;
-};
-type OrderListResponse = {
-    data: Array<Order>;
-};
-type Ticket = {
-    id: string;
-    customer_email: string;
-    subject: string;
-    message: string;
-    status: 'open' | 'pending_customer' | 'resolved' | 'archived';
-    category?: 'shipping' | 'return_refund' | 'defective_product' | 'payment' | 'product_question' | 'other';
-    order_id?: string | null;
-    created_at: string;
-};
-type TicketListResponse = {
-    data: Array<Ticket>;
-};
-type DiscountCode = {
-    id: string;
-    code: string;
-    type: 'percentage' | 'fixed_amount' | 'free_shipping' | 'bxgy';
-    value: number;
-    active: boolean;
-    starts_at?: string | null;
-    end_at?: string | null;
-    usage_limit_total?: number | null;
-    usage_count?: number;
-    conditions?: string | null;
-};
-type DiscountListResponse = {
-    data: Array<DiscountCode>;
-};
-type DiscountValidation = {
-    valid: boolean;
-    discount?: DiscountCode;
-    savings?: number | null;
-    message?: string;
-};
-type InventoryLevel = {
-    variant_id: string;
-    sku?: string | null;
-    quantity: number;
-    product_id?: string;
-};
-type LoyaltyBalance = {
-    contact_id: string;
-    points: number;
-    tier?: string | null;
-};
-type ReferralInfo = {
-    contact_id: string;
-    referral_link: string;
-    referrals_count?: number;
-    rewards_earned?: number;
-};
-type GiftCard = {
-    id: string;
-    code: string;
-    initial_value: number;
-    balance: number;
-    currency: string;
-    expires_at?: string | null;
-    active: boolean;
-};
-type GiftCardListResponse = {
-    data: Array<GiftCard>;
-};
-type Subscription = {
-    id: string;
-    status: string;
-    next_shipment_date?: string | null;
-};
-type SuccessResponse = {
-    success: boolean;
-    message?: string;
-};
-type GeocodeResult = {
-    lat: number;
-    lng: number;
-    formatted_address: string;
-    components?: {
-        street?: string;
-        city?: string;
-        state?: string;
-        zip?: string;
-        country?: string;
+    delivery_estimate?: {
+        min_days: number;
+        max_days: number;
     };
+    is_free: boolean;
+};
+type ShippingRatesResponse = {
+    profiles: Array<{
+        profile_id: string;
+        profile_name: string;
+        rates: Array<ShippingRate>;
+    }>;
+};
+type Policy = {
+    policy_type: 'privacy_policy' | 'terms_of_service' | 'refund_policy' | 'shipping_policy' | 'legal_notice';
+    title: string;
+    body: string;
+    locale?: string;
+    updated_at?: string;
+    slug?: string;
+    url?: string;
+};
+type PolicyListResponse = {
+    data: Array<Policy>;
+};
+type PolicyDetailResponse = {
+    data: Policy;
 };
 type GetV1ProductsData = {
     body?: never;
@@ -609,460 +565,151 @@ type PostV1CheckoutStripeResponses = {
     200: CheckoutSession;
 };
 type PostV1CheckoutStripeResponse = PostV1CheckoutStripeResponses[keyof PostV1CheckoutStripeResponses];
-type GetV1OrdersData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by order status
-         */
-        status?: 'paid' | 'fulfilled' | 'shipped' | 'cancelled' | 'refunded';
-        /**
-         * Number of items to return
-         */
-        limit?: number;
-    };
-    url: '/v1/orders';
-};
-type GetV1OrdersResponses = {
-    /**
-     * A list of orders
-     */
-    200: OrderListResponse;
-};
-type GetV1OrdersResponse = GetV1OrdersResponses[keyof GetV1OrdersResponses];
-type PostV1OrdersByOrderIdFulfillData = {
-    body?: {
-        tracking_number?: string;
-        tracking_company?: string;
-        tracking_url?: string;
-        send_email?: boolean;
-    };
-    path: {
-        /**
-         * Order ID
-         */
-        orderId: string;
-    };
-    query?: never;
-    url: '/v1/orders/{orderId}/fulfill';
-};
-type PostV1OrdersByOrderIdFulfillResponses = {
-    /**
-     * Order fulfilled successfully
-     */
-    200: SuccessResponse;
-};
-type PostV1OrdersByOrderIdFulfillResponse = PostV1OrdersByOrderIdFulfillResponses[keyof PostV1OrdersByOrderIdFulfillResponses];
-type PostV1OrdersByOrderIdRefundData = {
-    body?: {
-        /**
-         * Partial refund amount. Omit for full refund.
-         */
-        amount?: number;
-        reason?: string;
-        note?: string;
-    };
-    path: {
-        /**
-         * Order ID
-         */
-        orderId: string;
-    };
-    query?: never;
-    url: '/v1/orders/{orderId}/refund';
-};
-type PostV1OrdersByOrderIdRefundResponses = {
-    /**
-     * Order refunded successfully
-     */
-    200: SuccessResponse;
-};
-type PostV1OrdersByOrderIdRefundResponse = PostV1OrdersByOrderIdRefundResponses[keyof PostV1OrdersByOrderIdRefundResponses];
-type GetV1InventoryData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by variant ID
-         */
-        variant_id?: string;
-        /**
-         * Filter by SKU
-         */
-        sku?: string;
-        /**
-         * Filter by product ID
-         */
-        product_id?: string;
-    };
-    url: '/v1/inventory';
-};
-type GetV1InventoryResponses = {
-    /**
-     * Inventory level
-     */
-    200: InventoryLevel;
-};
-type GetV1InventoryResponse = GetV1InventoryResponses[keyof GetV1InventoryResponses];
-type PostV1InventoryData = {
-    body?: {
-        variant_id: string;
-        quantity: number;
-        /**
-         * Set absolute quantity or adjust by delta
-         */
-        mode?: 'set' | 'adjust';
-        reason?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/inventory';
-};
-type PostV1InventoryResponses = {
-    /**
-     * Updated inventory level
-     */
-    200: InventoryLevel;
-};
-type PostV1InventoryResponse = PostV1InventoryResponses[keyof PostV1InventoryResponses];
-type GetV1LoyaltyData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Contact ID
-         */
-        contact_id: string;
-    };
-    url: '/v1/loyalty';
-};
-type GetV1LoyaltyResponses = {
-    /**
-     * Loyalty balance
-     */
-    200: LoyaltyBalance;
-};
-type GetV1LoyaltyResponse = GetV1LoyaltyResponses[keyof GetV1LoyaltyResponses];
-type PostV1LoyaltyRedeemData = {
-    body?: {
-        contact_id: string;
-        points: number;
-        order_id?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/loyalty/redeem';
-};
-type PostV1LoyaltyRedeemResponses = {
-    /**
-     * Points redeemed successfully
-     */
-    200: SuccessResponse;
-};
-type PostV1LoyaltyRedeemResponse = PostV1LoyaltyRedeemResponses[keyof PostV1LoyaltyRedeemResponses];
-type GetV1LoyaltyReferralData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Contact ID
-         */
-        contact_id: string;
-    };
-    url: '/v1/loyalty/referral';
-};
-type GetV1LoyaltyReferralResponses = {
-    /**
-     * Referral information
-     */
-    200: ReferralInfo;
-};
-type GetV1LoyaltyReferralResponse = GetV1LoyaltyReferralResponses[keyof GetV1LoyaltyReferralResponses];
-type GetV1GiftCardsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Number of items to return
-         */
-        limit?: number;
-    };
-    url: '/v1/gift-cards';
-};
-type GetV1GiftCardsResponses = {
-    /**
-     * A list of gift cards
-     */
-    200: GiftCardListResponse;
-};
-type GetV1GiftCardsResponse = GetV1GiftCardsResponses[keyof GetV1GiftCardsResponses];
-type PostV1GiftCardsData = {
-    body?: {
-        initial_value: number;
-        currency?: string;
-        code?: string;
-        expires_at?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/gift-cards';
-};
-type PostV1GiftCardsResponses = {
-    /**
-     * The created gift card
-     */
-    201: GiftCard;
-};
-type PostV1GiftCardsResponse = PostV1GiftCardsResponses[keyof PostV1GiftCardsResponses];
-type PostV1GiftCardsRedeemData = {
-    body?: {
-        code: string;
-        amount: number;
-        order_id?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/gift-cards/redeem';
-};
-type PostV1GiftCardsRedeemResponses = {
-    /**
-     * Gift card redeemed successfully
-     */
-    200: SuccessResponse;
-};
-type PostV1GiftCardsRedeemResponse = PostV1GiftCardsRedeemResponses[keyof PostV1GiftCardsRedeemResponses];
-type PatchV1SubscriptionsBySubscriptionIdData = {
-    body?: {
-        action: 'delay' | 'ship_now';
-        target_date?: string;
-    };
-    path: {
-        /**
-         * Subscription ID
-         */
-        subscriptionId: string;
-    };
-    query?: never;
-    url: '/v1/subscriptions/{subscriptionId}';
-};
-type PatchV1SubscriptionsBySubscriptionIdResponses = {
-    /**
-     * Updated subscription
-     */
-    200: Subscription;
-};
-type PatchV1SubscriptionsBySubscriptionIdResponse = PatchV1SubscriptionsBySubscriptionIdResponses[keyof PatchV1SubscriptionsBySubscriptionIdResponses];
-type GetV1TicketsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by ticket status
-         */
-        status?: 'open' | 'pending_customer' | 'resolved' | 'archived';
-        /**
-         * Filter by category
-         */
-        category?: 'shipping' | 'return_refund' | 'defective_product' | 'payment' | 'product_question' | 'other';
-        /**
-         * Filter by customer email
-         */
-        customer_email?: string;
-        /**
-         * Number of items to return
-         */
-        limit?: number;
-    };
-    url: '/v1/tickets';
-};
-type GetV1TicketsResponses = {
-    /**
-     * A list of tickets
-     */
-    200: TicketListResponse;
-};
-type GetV1TicketsResponse = GetV1TicketsResponses[keyof GetV1TicketsResponses];
-type PostV1TicketsData = {
-    body?: {
-        customer_email: string;
-        subject: string;
-        message: string;
-        category?: 'shipping' | 'return_refund' | 'defective_product' | 'payment' | 'product_question' | 'other';
-        order_id?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/tickets';
-};
-type PostV1TicketsResponses = {
-    /**
-     * The created ticket
-     */
-    201: Ticket;
-};
-type PostV1TicketsResponse = PostV1TicketsResponses[keyof PostV1TicketsResponses];
-type GetV1TicketsByIdData = {
+type GetV1CollectionsByHandleData = {
     body?: never;
     path: {
         /**
-         * Ticket ID
+         * Collection handle (slug)
          */
-        id: string;
+        handle: string;
     };
     query?: never;
-    url: '/v1/tickets/{id}';
+    url: '/v1/collections/{handle}';
 };
-type GetV1TicketsByIdErrors = {
+type GetV1CollectionsByHandleErrors = {
     /**
-     * Ticket not found
+     * Collection not found
      */
     404: unknown;
 };
-type GetV1TicketsByIdResponses = {
+type GetV1CollectionsByHandleResponses = {
     /**
-     * The ticket
+     * Collection details
      */
-    200: Ticket;
-};
-type GetV1TicketsByIdResponse = GetV1TicketsByIdResponses[keyof GetV1TicketsByIdResponses];
-type PostV1TicketsByIdReplyData = {
-    body?: {
-        message: string;
+    200: {
+        data: CollectionDetail;
     };
+};
+type GetV1CollectionsByHandleResponse = GetV1CollectionsByHandleResponses[keyof GetV1CollectionsByHandleResponses];
+type GetV1CollectionsByHandleProductsData = {
+    body?: never;
     path: {
         /**
-         * Ticket ID
+         * Collection handle (slug)
          */
-        id: string;
+        handle: string;
     };
-    query?: never;
-    url: '/v1/tickets/{id}/reply';
-};
-type PostV1TicketsByIdReplyResponses = {
-    /**
-     * Reply sent successfully
-     */
-    200: SuccessResponse;
-};
-type PostV1TicketsByIdReplyResponse = PostV1TicketsByIdReplyResponses[keyof PostV1TicketsByIdReplyResponses];
-type GetV1DiscountsData = {
-    body?: never;
-    path?: never;
     query?: {
-        /**
-         * Filter by active status
-         */
-        active?: boolean;
-        /**
-         * Filter by discount type
-         */
-        type?: 'percentage' | 'fixed_amount' | 'free_shipping' | 'bxgy';
+        limit?: number;
+        offset?: number | null;
     };
-    url: '/v1/discounts';
+    url: '/v1/collections/{handle}/products';
 };
-type GetV1DiscountsResponses = {
+type GetV1CollectionsByHandleProductsErrors = {
     /**
-     * A list of discount codes
+     * Collection not found
      */
-    200: DiscountListResponse;
+    404: unknown;
 };
-type GetV1DiscountsResponse = GetV1DiscountsResponses[keyof GetV1DiscountsResponses];
-type PostV1DiscountsData = {
-    body?: {
-        code: string;
-        type: 'percentage' | 'fixed_amount' | 'free_shipping' | 'bxgy';
-        value: number;
-        starts_at?: string;
-        end_at?: string;
-        usage_limit_total?: number;
-        conditions?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/discounts';
-};
-type PostV1DiscountsResponses = {
+type GetV1CollectionsByHandleProductsResponses = {
     /**
-     * The created discount code
+     * Products in the collection
      */
-    201: DiscountCode;
+    200: CollectionProductsResponse;
 };
-type PostV1DiscountsResponse = PostV1DiscountsResponses[keyof PostV1DiscountsResponses];
-type PostV1DiscountsValidateData = {
-    body?: {
-        code: string;
-        cart_total?: number;
-        cart_quantity?: number;
-        customer_tier?: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/v1/discounts/validate';
-};
-type PostV1DiscountsValidateResponses = {
-    /**
-     * Validation result
-     */
-    200: DiscountValidation;
-};
-type PostV1DiscountsValidateResponse = PostV1DiscountsValidateResponses[keyof PostV1DiscountsValidateResponses];
-type PostV1ApprovalsByApprovalIdExecuteData = {
+type GetV1CollectionsByHandleProductsResponse = GetV1CollectionsByHandleProductsResponses[keyof GetV1CollectionsByHandleProductsResponses];
+type GetV1ThemeData = {
     body?: never;
-    path: {
-        /**
-         * Approval ID
-         */
-        approvalId: string;
-    };
+    path?: never;
     query?: never;
-    url: '/v1/approvals/{approvalId}/execute';
+    url: '/v1/theme';
 };
-type PostV1ApprovalsByApprovalIdExecuteResponses = {
+type GetV1ThemeResponses = {
     /**
-     * Approval executed successfully
+     * Theme CSS variables as key-value pairs
      */
-    200: SuccessResponse;
+    200: ThemeResponse;
 };
-type PostV1ApprovalsByApprovalIdExecuteResponse = PostV1ApprovalsByApprovalIdExecuteResponses[keyof PostV1ApprovalsByApprovalIdExecuteResponses];
-type PostV1ApprovalsByApprovalIdRejectData = {
-    body?: {
-        reason?: string;
-    };
-    path: {
-        /**
-         * Approval ID
-         */
-        approvalId: string;
-    };
-    query?: never;
-    url: '/v1/approvals/{approvalId}/reject';
-};
-type PostV1ApprovalsByApprovalIdRejectResponses = {
-    /**
-     * Approval rejected successfully
-     */
-    200: SuccessResponse;
-};
-type PostV1ApprovalsByApprovalIdRejectResponse = PostV1ApprovalsByApprovalIdRejectResponses[keyof PostV1ApprovalsByApprovalIdRejectResponses];
-type GetV1UtilsGeocodeData = {
+type GetV1ThemeResponse = GetV1ThemeResponses[keyof GetV1ThemeResponses];
+type GetV1ShippingRatesData = {
     body?: never;
     path?: never;
     query: {
         /**
-         * Address to geocode
+         * Cart ID
          */
-        address: string;
+        cart_id: string;
+        /**
+         * Market ID (defaults to domestic market)
+         */
+        market_id?: string;
+        /**
+         * ISO country code
+         */
+        country?: string;
     };
-    url: '/v1/utils/geocode';
+    url: '/v1/shipping/rates';
 };
-type GetV1UtilsGeocodeResponses = {
+type GetV1ShippingRatesErrors = {
     /**
-     * Geocode result
+     * Missing or invalid parameters
      */
-    200: GeocodeResult;
+    400: unknown;
 };
-type GetV1UtilsGeocodeResponse = GetV1UtilsGeocodeResponses[keyof GetV1UtilsGeocodeResponses];
+type GetV1ShippingRatesResponses = {
+    /**
+     * Available shipping rates grouped by delivery profile
+     */
+    200: ShippingRatesResponse;
+};
+type GetV1ShippingRatesResponse = GetV1ShippingRatesResponses[keyof GetV1ShippingRatesResponses];
+type GetV1PoliciesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Locale filter
+         */
+        locale?: string;
+    };
+    url: '/v1/policies';
+};
+type GetV1PoliciesResponses = {
+    /**
+     * List of policies
+     */
+    200: PolicyListResponse;
+};
+type GetV1PoliciesResponse = GetV1PoliciesResponses[keyof GetV1PoliciesResponses];
+type GetV1PoliciesByTypeData = {
+    body?: never;
+    path: {
+        /**
+         * Policy type slug (e.g. privacy-policy, terms-of-service)
+         */
+        type: string;
+    };
+    query?: {
+        /**
+         * Locale filter
+         */
+        locale?: string;
+    };
+    url: '/v1/policies/{type}';
+};
+type GetV1PoliciesByTypeErrors = {
+    /**
+     * Policy not found
+     */
+    404: unknown;
+};
+type GetV1PoliciesByTypeResponses = {
+    /**
+     * Policy detail
+     */
+    200: PolicyDetailResponse;
+};
+type GetV1PoliciesByTypeResponse = GetV1PoliciesByTypeResponses[keyof GetV1PoliciesByTypeResponses];
 
 type AuthToken = string | undefined;
 interface Auth {
@@ -1470,137 +1117,41 @@ declare const getV1Collections: <ThrowOnError extends boolean = false>(options?:
  */
 declare const postV1CheckoutStripe: <ThrowOnError extends boolean = false>(options?: Options<PostV1CheckoutStripeData, ThrowOnError>) => RequestResult<PostV1CheckoutStripeResponses, unknown, ThrowOnError, "fields">;
 /**
- * Retrieve a list of orders
+ * Get collection
  *
- * List orders
+ * Get a single collection by handle
  */
-declare const getV1Orders: <ThrowOnError extends boolean = false>(options?: Options<GetV1OrdersData, ThrowOnError>) => RequestResult<GetV1OrdersResponses, unknown, ThrowOnError, "fields">;
+declare const getV1CollectionsByHandle: <ThrowOnError extends boolean = false>(options: Options<GetV1CollectionsByHandleData, ThrowOnError>) => RequestResult<GetV1CollectionsByHandleResponses, GetV1CollectionsByHandleErrors, ThrowOnError, "fields">;
 /**
- * Fulfill order
+ * Get collection products
  *
- * Fulfill an order and optionally add tracking info
+ * List products in a collection
  */
-declare const postV1OrdersByOrderIdFulfill: <ThrowOnError extends boolean = false>(options: Options<PostV1OrdersByOrderIdFulfillData, ThrowOnError>) => RequestResult<PostV1OrdersByOrderIdFulfillResponses, unknown, ThrowOnError, "fields">;
+declare const getV1CollectionsByHandleProducts: <ThrowOnError extends boolean = false>(options: Options<GetV1CollectionsByHandleProductsData, ThrowOnError>) => RequestResult<GetV1CollectionsByHandleProductsResponses, GetV1CollectionsByHandleProductsErrors, ThrowOnError, "fields">;
 /**
- * Refund order
+ * Get theme
  *
- * Refund an order fully or partially
+ * Get workspace theme CSS custom properties
  */
-declare const postV1OrdersByOrderIdRefund: <ThrowOnError extends boolean = false>(options: Options<PostV1OrdersByOrderIdRefundData, ThrowOnError>) => RequestResult<PostV1OrdersByOrderIdRefundResponses, unknown, ThrowOnError, "fields">;
+declare const getV1Theme: <ThrowOnError extends boolean = false>(options?: Options<GetV1ThemeData, ThrowOnError>) => RequestResult<GetV1ThemeResponses, unknown, ThrowOnError, "fields">;
 /**
- * Get inventory
+ * Get shipping rates
  *
- * Get inventory levels
+ * Calculate shipping rates for a cart
  */
-declare const getV1Inventory: <ThrowOnError extends boolean = false>(options?: Options<GetV1InventoryData, ThrowOnError>) => RequestResult<GetV1InventoryResponses, unknown, ThrowOnError, "fields">;
+declare const getV1ShippingRates: <ThrowOnError extends boolean = false>(options: Options<GetV1ShippingRatesData, ThrowOnError>) => RequestResult<GetV1ShippingRatesResponses, GetV1ShippingRatesErrors, ThrowOnError, "fields">;
 /**
- * Update inventory
+ * List policies
  *
- * Update inventory level for a variant
+ * List all legal policies for the workspace
  */
-declare const postV1Inventory: <ThrowOnError extends boolean = false>(options?: Options<PostV1InventoryData, ThrowOnError>) => RequestResult<PostV1InventoryResponses, unknown, ThrowOnError, "fields">;
+declare const getV1Policies: <ThrowOnError extends boolean = false>(options?: Options<GetV1PoliciesData, ThrowOnError>) => RequestResult<GetV1PoliciesResponses, unknown, ThrowOnError, "fields">;
 /**
- * Get loyalty balance
+ * Get policy
  *
- * Get loyalty point balance for a contact
+ * Get a specific policy by type
  */
-declare const getV1Loyalty: <ThrowOnError extends boolean = false>(options: Options<GetV1LoyaltyData, ThrowOnError>) => RequestResult<GetV1LoyaltyResponses, unknown, ThrowOnError, "fields">;
-/**
- * Redeem loyalty points
- *
- * Redeem loyalty points
- */
-declare const postV1LoyaltyRedeem: <ThrowOnError extends boolean = false>(options?: Options<PostV1LoyaltyRedeemData, ThrowOnError>) => RequestResult<PostV1LoyaltyRedeemResponses, unknown, ThrowOnError, "fields">;
-/**
- * Get referral info
- *
- * Get referral info for a contact
- */
-declare const getV1LoyaltyReferral: <ThrowOnError extends boolean = false>(options: Options<GetV1LoyaltyReferralData, ThrowOnError>) => RequestResult<GetV1LoyaltyReferralResponses, unknown, ThrowOnError, "fields">;
-/**
- * List gift cards
- *
- * List gift cards
- */
-declare const getV1GiftCards: <ThrowOnError extends boolean = false>(options?: Options<GetV1GiftCardsData, ThrowOnError>) => RequestResult<GetV1GiftCardsResponses, unknown, ThrowOnError, "fields">;
-/**
- * Create gift card
- *
- * Create a new gift card
- */
-declare const postV1GiftCards: <ThrowOnError extends boolean = false>(options?: Options<PostV1GiftCardsData, ThrowOnError>) => RequestResult<PostV1GiftCardsResponses, unknown, ThrowOnError, "fields">;
-/**
- * Redeem gift card
- *
- * Redeem a gift card
- */
-declare const postV1GiftCardsRedeem: <ThrowOnError extends boolean = false>(options?: Options<PostV1GiftCardsRedeemData, ThrowOnError>) => RequestResult<PostV1GiftCardsRedeemResponses, unknown, ThrowOnError, "fields">;
-/**
- * Update subscription
- *
- * Update a subscription (delay or ship now)
- */
-declare const patchV1SubscriptionsBySubscriptionId: <ThrowOnError extends boolean = false>(options: Options<PatchV1SubscriptionsBySubscriptionIdData, ThrowOnError>) => RequestResult<PatchV1SubscriptionsBySubscriptionIdResponses, unknown, ThrowOnError, "fields">;
-/**
- * List tickets
- *
- * List support tickets
- */
-declare const getV1Tickets: <ThrowOnError extends boolean = false>(options?: Options<GetV1TicketsData, ThrowOnError>) => RequestResult<GetV1TicketsResponses, unknown, ThrowOnError, "fields">;
-/**
- * Create ticket
- *
- * Create a new support ticket
- */
-declare const postV1Tickets: <ThrowOnError extends boolean = false>(options?: Options<PostV1TicketsData, ThrowOnError>) => RequestResult<PostV1TicketsResponses, unknown, ThrowOnError, "fields">;
-/**
- * Get ticket
- *
- * Get a single support ticket
- */
-declare const getV1TicketsById: <ThrowOnError extends boolean = false>(options: Options<GetV1TicketsByIdData, ThrowOnError>) => RequestResult<GetV1TicketsByIdResponses, GetV1TicketsByIdErrors, ThrowOnError, "fields">;
-/**
- * Reply to ticket
- *
- * Reply to a support ticket
- */
-declare const postV1TicketsByIdReply: <ThrowOnError extends boolean = false>(options: Options<PostV1TicketsByIdReplyData, ThrowOnError>) => RequestResult<PostV1TicketsByIdReplyResponses, unknown, ThrowOnError, "fields">;
-/**
- * List discounts
- *
- * List discount codes
- */
-declare const getV1Discounts: <ThrowOnError extends boolean = false>(options?: Options<GetV1DiscountsData, ThrowOnError>) => RequestResult<GetV1DiscountsResponses, unknown, ThrowOnError, "fields">;
-/**
- * Create discount code
- *
- * Create a new discount code
- */
-declare const postV1Discounts: <ThrowOnError extends boolean = false>(options?: Options<PostV1DiscountsData, ThrowOnError>) => RequestResult<PostV1DiscountsResponses, unknown, ThrowOnError, "fields">;
-/**
- * Validate discount code
- *
- * Validate a discount code against cart context
- */
-declare const postV1DiscountsValidate: <ThrowOnError extends boolean = false>(options?: Options<PostV1DiscountsValidateData, ThrowOnError>) => RequestResult<PostV1DiscountsValidateResponses, unknown, ThrowOnError, "fields">;
-/**
- * Execute approval
- *
- * Execute a pending approval
- */
-declare const postV1ApprovalsByApprovalIdExecute: <ThrowOnError extends boolean = false>(options: Options<PostV1ApprovalsByApprovalIdExecuteData, ThrowOnError>) => RequestResult<PostV1ApprovalsByApprovalIdExecuteResponses, unknown, ThrowOnError, "fields">;
-/**
- * Reject approval
- *
- * Reject a pending approval
- */
-declare const postV1ApprovalsByApprovalIdReject: <ThrowOnError extends boolean = false>(options: Options<PostV1ApprovalsByApprovalIdRejectData, ThrowOnError>) => RequestResult<PostV1ApprovalsByApprovalIdRejectResponses, unknown, ThrowOnError, "fields">;
-/**
- * Geocode address
- *
- * Geocode an address to coordinates
- */
-declare const getV1UtilsGeocode: <ThrowOnError extends boolean = false>(options: Options<GetV1UtilsGeocodeData, ThrowOnError>) => RequestResult<GetV1UtilsGeocodeResponses, unknown, ThrowOnError, "fields">;
+declare const getV1PoliciesByType: <ThrowOnError extends boolean = false>(options: Options<GetV1PoliciesByTypeData, ThrowOnError>) => RequestResult<GetV1PoliciesByTypeResponses, GetV1PoliciesByTypeErrors, ThrowOnError, "fields">;
 
 declare const client: Client;
 
@@ -1678,6 +1229,48 @@ declare class Reponse {
         } | {
             data: CollectionListResponse;
             error: undefined;
+        }) & {
+            request?: Request;
+            response?: Response;
+        })>;
+        /**
+         * Get a single collection by its handle/slug with metadata and product count.
+         * @param params.path.handle - The collection handle
+         */
+        getCollection: (params: Parameters<typeof getV1CollectionsByHandle>[0]) => Promise<{
+            data: {
+                data: CollectionDetail;
+            };
+            request: Request;
+            response: Response;
+        } | (({
+            data: {
+                data: CollectionDetail;
+            };
+            error: undefined;
+        } | {
+            data: undefined;
+            error: unknown;
+        }) & {
+            request?: Request;
+            response?: Response;
+        })>;
+        /**
+         * List products belonging to a specific collection.
+         * @param params.path.handle - The collection handle
+         * @param params.query.limit - Number of products to return (1-100, default 50)
+         * @param params.query.offset - Pagination offset (default 0)
+         */
+        getCollectionProducts: (params: Parameters<typeof getV1CollectionsByHandleProducts>[0]) => Promise<{
+            data: CollectionProductsResponse;
+            request: Request;
+            response: Response;
+        } | (({
+            data: CollectionProductsResponse;
+            error: undefined;
+        } | {
+            data: undefined;
+            error: unknown;
         }) & {
             request?: Request;
             response?: Response;
@@ -1800,75 +1393,33 @@ declare class Reponse {
             request?: Request;
             response?: Response;
         })>;
+        /**
+         * Calculate shipping rates for a cart.
+         * @param params.query.cart_id - Cart UUID
+         * @param params.query.market_id - Optional market UUID
+         * @param params.query.country - Optional ISO country code
+         */
+        getShippingRates: (params: Parameters<typeof getV1ShippingRates>[0]) => Promise<{
+            data: ShippingRatesResponse;
+            request: Request;
+            response: Response;
+        } | (({
+            data: ShippingRatesResponse;
+            error: undefined;
+        } | {
+            data: undefined;
+            error: unknown;
+        }) & {
+            request?: Request;
+            response?: Response;
+        })>;
     };
-    /** Order management: list, fulfill, refund, cancel, and notifications. */
+    /** Order management: update address, resend emails, cancel. */
     orders: {
-        /**
-         * List orders with optional status filter.
-         * @param params.query.status - Filter by status (paid, fulfilled, shipped, cancelled, refunded)
-         * @param params.query.limit - Number of orders to return (default 50)
-         */
-        list: (params?: Parameters<typeof getV1Orders>[0]) => Promise<{
-            data: OrderListResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: OrderListResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Mark an order as fulfilled and optionally attach tracking info.
-         * @param params.path.orderId - Order UUID
-         * @param params.body.tracking_number - Shipment tracking number
-         * @param params.body.tracking_company - Carrier name
-         * @param params.body.tracking_url - Tracking URL
-         * @param params.body.send_email - Send notification email (default true)
-         */
-        fulfill: (params: Parameters<typeof postV1OrdersByOrderIdFulfill>[0]) => Promise<{
-            data: SuccessResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: SuccessResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Refund an order (full or partial).
-         * @param params.path.orderId - Order UUID
-         * @param params.body.amount - Partial refund amount (omit for full refund)
-         * @param params.body.reason - Reason for the refund
-         */
-        refund: (params: Parameters<typeof postV1OrdersByOrderIdRefund>[0]) => Promise<{
-            data: SuccessResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: SuccessResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
         /**
          * Update the shipping address of an existing order.
          * @param params.path.orderId - Order UUID
          * @param params.body.shipping_address - New address object
-         * @param params.body.conversation_id - Conversation UUID for identity verification
          */
         updateShippingAddress: (params: Parameters<typeof patchV1OrdersByOrderIdShippingAddress>[0]) => Promise<{
             data: {
@@ -1895,9 +1446,8 @@ declare class Reponse {
             response?: Response;
         })>;
         /**
-         * Resend the order confirmation email. Rate limited: max 3 per hour.
+         * Resend the order confirmation email.
          * @param params.path.orderId - Order UUID
-         * @param params.body.conversation_id - Conversation UUID for identity verification
          */
         resendConfirmation: (params: Parameters<typeof postV1OrdersByOrderIdResendConfirmation>[0]) => Promise<{
             data: {
@@ -1922,9 +1472,8 @@ declare class Reponse {
             response?: Response;
         })>;
         /**
-         * Resend the invoice email with PDF. Rate limited: max 3 per hour.
+         * Resend the invoice email with PDF.
          * @param params.path.orderId - Order UUID
-         * @param params.body.conversation_id - Conversation UUID for identity verification
          */
         resendInvoice: (params: Parameters<typeof postV1OrdersByOrderIdResendInvoice>[0]) => Promise<{
             data: {
@@ -1952,7 +1501,6 @@ declare class Reponse {
          * Cancel an order and trigger a Stripe refund.
          * @param params.path.orderId - Order UUID
          * @param params.body.reason - Cancellation reason enum
-         * @param params.body.conversation_id - Conversation UUID for identity verification
          */
         cancel: (params: Parameters<typeof postV1OrdersByOrderIdCancel>[0]) => Promise<{
             data: unknown;
@@ -1969,395 +1517,57 @@ declare class Reponse {
             response?: Response;
         })>;
     };
-    /** Inventory management: check and update stock levels. */
-    inventory: {
+    /** Storefront operations: theme, legal policies. */
+    storefront: {
         /**
-         * Get current inventory levels for a variant, SKU, or product.
-         * @param params.query.variant_id - Variant UUID
-         * @param params.query.sku - Product/variant SKU
-         * @param params.query.product_id - Product UUID
+         * Get workspace theme as CSS custom properties.
          */
-        get: (params?: Parameters<typeof getV1Inventory>[0]) => Promise<{
-            data: InventoryLevel;
+        getTheme: (params?: Parameters<typeof getV1Theme>[0]) => Promise<{
+            data: ThemeResponse;
             request: Request;
             response: Response;
         } | (({
             data: undefined;
             error: unknown;
         } | {
-            data: InventoryLevel;
+            data: ThemeResponse;
             error: undefined;
         }) & {
             request?: Request;
             response?: Response;
         })>;
         /**
-         * Set or adjust inventory quantity for a variant.
-         * @param params.body.variant_id - Variant UUID
-         * @param params.body.quantity - Quantity value
-         * @param params.body.mode - 'set' to replace, 'adjust' to add/subtract
-         * @param params.body.reason - Reason for the change
+         * List all legal policies for the workspace.
+         * @param params.query.locale - Locale filter (default "fr")
          */
-        update: (params?: Parameters<typeof postV1Inventory>[0]) => Promise<{
-            data: InventoryLevel;
+        listPolicies: (params?: Parameters<typeof getV1Policies>[0]) => Promise<{
+            data: PolicyListResponse;
             request: Request;
             response: Response;
         } | (({
             data: undefined;
             error: unknown;
         } | {
-            data: InventoryLevel;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-    };
-    /** Discount code operations: list, create, and validate promo codes. */
-    discounts: {
-        /**
-         * List discount codes. Filter by active status or type.
-         * @param params.query.active - Filter by active status
-         * @param params.query.type - Filter by type (percentage, fixed_amount, free_shipping, bxgy)
-         */
-        list: (params?: Parameters<typeof getV1Discounts>[0]) => Promise<{
-            data: DiscountListResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: DiscountListResponse;
+            data: PolicyListResponse;
             error: undefined;
         }) & {
             request?: Request;
             response?: Response;
         })>;
         /**
-         * Validate a discount code and calculate potential savings.
-         * @param params.body.code - The discount code to validate
-         * @param params.body.cart_total - Cart total for savings calculation
-         * @param params.body.cart_quantity - Number of items in cart
+         * Get a specific legal policy by type.
+         * @param params.path.type - Policy type slug (e.g. "privacy-policy")
          */
-        validate: (params?: Parameters<typeof postV1DiscountsValidate>[0]) => Promise<{
-            data: DiscountValidation;
+        getPolicy: (params: Parameters<typeof getV1PoliciesByType>[0]) => Promise<{
+            data: PolicyDetailResponse;
             request: Request;
             response: Response;
         } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: DiscountValidation;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Create a new discount code.
-         * @param params.body.code - Code text (will be uppercased)
-         * @param params.body.type - Type: percentage, fixed_amount, free_shipping, bxgy
-         * @param params.body.value - Discount value
-         */
-        create: (params?: Parameters<typeof postV1Discounts>[0]) => Promise<{
-            data: DiscountCode;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: DiscountCode;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-    };
-    /** Loyalty program: points balance, redemption, and referrals. */
-    loyalty: {
-        /**
-         * Get the loyalty points balance for a contact.
-         * @param params.query.contact_id - Contact UUID
-         */
-        getBalance: (params: Parameters<typeof getV1Loyalty>[0]) => Promise<{
-            data: LoyaltyBalance;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: LoyaltyBalance;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Redeem loyalty points, optionally against a specific order.
-         * @param params.body.contact_id - Contact UUID
-         * @param params.body.points - Number of points to redeem
-         * @param params.body.order_id - Order UUID to apply the redemption to
-         */
-        redeem: (params?: Parameters<typeof postV1LoyaltyRedeem>[0]) => Promise<{
-            data: SuccessResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: SuccessResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Get referral program info for a contact (link, stats, rewards).
-         * @param params.query.contact_id - Contact UUID
-         */
-        getReferralInfo: (params: Parameters<typeof getV1LoyaltyReferral>[0]) => Promise<{
-            data: ReferralInfo;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: ReferralInfo;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-    };
-    /** Gift card operations: list, create, and redeem gift cards. */
-    giftCards: {
-        /**
-         * List gift cards in the workspace.
-         * @param params.query.limit - Number to return (default 50)
-         */
-        list: (params?: Parameters<typeof getV1GiftCards>[0]) => Promise<{
-            data: GiftCardListResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: GiftCardListResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Create a new gift card with an initial monetary value.
-         * @param params.body.initial_value - Initial value
-         * @param params.body.currency - Currency code (default EUR)
-         * @param params.body.code - Custom code (auto-generated if omitted)
-         * @param params.body.expires_at - Expiration date (ISO 8601)
-         */
-        create: (params?: Parameters<typeof postV1GiftCards>[0]) => Promise<{
-            data: GiftCard;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: GiftCard;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Redeem a gift card by applying an amount against it.
-         * @param params.body.code - Gift card code
-         * @param params.body.amount - Amount to redeem
-         * @param params.body.order_id - Order UUID to apply to
-         */
-        redeem: (params?: Parameters<typeof postV1GiftCardsRedeem>[0]) => Promise<{
-            data: SuccessResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: SuccessResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-    };
-    /** Support ticket operations: list, create, read, and reply. */
-    tickets: {
-        /**
-         * List support tickets with optional filters.
-         * @param params.query.status - Filter by status (open, pending_customer, resolved, archived)
-         * @param params.query.category - Filter by category
-         * @param params.query.customer_email - Filter by customer email
-         * @param params.query.limit - Number to return (default 20)
-         */
-        list: (params?: Parameters<typeof getV1Tickets>[0]) => Promise<{
-            data: TicketListResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: TicketListResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Get a single ticket by ID with full details.
-         * @param params.path.id - Ticket UUID
-         */
-        get: (params: Parameters<typeof getV1TicketsById>[0]) => Promise<{
-            data: Ticket;
-            request: Request;
-            response: Response;
-        } | (({
-            data: Ticket;
+            data: PolicyDetailResponse;
             error: undefined;
         } | {
             data: undefined;
             error: unknown;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Create a new support ticket.
-         * @param params.body.customer_email - Customer email
-         * @param params.body.subject - Ticket subject
-         * @param params.body.message - Initial message body
-         * @param params.body.category - Ticket category
-         * @param params.body.order_id - Related order UUID
-         */
-        create: (params?: Parameters<typeof postV1Tickets>[0]) => Promise<{
-            data: Ticket;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: Ticket;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Reply to a support ticket.
-         * @param params.path.id - Ticket UUID
-         * @param params.body.message - Reply message body
-         */
-        reply: (params: Parameters<typeof postV1TicketsByIdReply>[0]) => Promise<{
-            data: SuccessResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: SuccessResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-    };
-    /** Subscription management: delay or trigger shipments. */
-    subscriptions: {
-        /**
-         * Update a subscription — delay next shipment or trigger immediate shipment.
-         * @param params.path.subscriptionId - Subscription UUID
-         * @param params.body.action - 'delay' or 'ship_now'
-         * @param params.body.target_date - New date for delay action (ISO 8601)
-         */
-        update: (params: Parameters<typeof patchV1SubscriptionsBySubscriptionId>[0]) => Promise<{
-            data: Subscription;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: Subscription;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-    };
-    /** Approval workflow: execute or reject pending approval requests. */
-    approvals: {
-        /**
-         * Execute (approve) a pending approval request.
-         * @param params.path.approvalId - Approval UUID
-         */
-        execute: (params: Parameters<typeof postV1ApprovalsByApprovalIdExecute>[0]) => Promise<{
-            data: SuccessResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: SuccessResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-        /**
-         * Reject a pending approval request.
-         * @param params.path.approvalId - Approval UUID
-         * @param params.body.reason - Reason for rejection
-         */
-        reject: (params: Parameters<typeof postV1ApprovalsByApprovalIdReject>[0]) => Promise<{
-            data: SuccessResponse;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: SuccessResponse;
-            error: undefined;
-        }) & {
-            request?: Request;
-            response?: Response;
-        })>;
-    };
-    /** Utility operations: geocoding and address resolution. */
-    utils: {
-        /**
-         * Geocode a free-form address into coordinates and structured components.
-         * @param params.query.address - The address string to geocode
-         */
-        geocodeAddress: (params: Parameters<typeof getV1UtilsGeocode>[0]) => Promise<{
-            data: GeocodeResult;
-            request: Request;
-            response: Response;
-        } | (({
-            data: undefined;
-            error: unknown;
-        } | {
-            data: GeocodeResult;
-            error: undefined;
         }) & {
             request?: Request;
             response?: Response;
@@ -2365,4 +1575,4 @@ declare class Reponse {
     };
 }
 
-export { type AddCartItemInput, type Cart, type CheckoutSession, type ClientOptions$1 as ClientOptions, type Collection, type CollectionListResponse, type CreateCartInput, type CreateCheckoutInput, type DeleteV1CartsByIdItemsByLineIdData, type DeleteV1CartsByIdItemsByLineIdErrors, type DeleteV1CartsByIdItemsByLineIdResponses, type DiscountCode, type DiscountListResponse, type DiscountValidation, type GeocodeResult, type GetV1CartsByIdData, type GetV1CartsByIdErrors, type GetV1CartsByIdResponse, type GetV1CartsByIdResponses, type GetV1CollectionsData, type GetV1CollectionsResponse, type GetV1CollectionsResponses, type GetV1DiscountsData, type GetV1DiscountsResponse, type GetV1DiscountsResponses, type GetV1GiftCardsData, type GetV1GiftCardsResponse, type GetV1GiftCardsResponses, type GetV1InventoryData, type GetV1InventoryResponse, type GetV1InventoryResponses, type GetV1LoyaltyData, type GetV1LoyaltyReferralData, type GetV1LoyaltyReferralResponse, type GetV1LoyaltyReferralResponses, type GetV1LoyaltyResponse, type GetV1LoyaltyResponses, type GetV1OrdersData, type GetV1OrdersResponse, type GetV1OrdersResponses, type GetV1ProductsByIdData, type GetV1ProductsByIdErrors, type GetV1ProductsByIdResponse, type GetV1ProductsByIdResponses, type GetV1ProductsData, type GetV1ProductsResponse, type GetV1ProductsResponses, type GetV1TicketsByIdData, type GetV1TicketsByIdErrors, type GetV1TicketsByIdResponse, type GetV1TicketsByIdResponses, type GetV1TicketsData, type GetV1TicketsResponse, type GetV1TicketsResponses, type GetV1UtilsGeocodeData, type GetV1UtilsGeocodeResponse, type GetV1UtilsGeocodeResponses, type GiftCard, type GiftCardListResponse, type InventoryLevel, type LoyaltyBalance, type Options, type Order, type OrderListResponse, type PatchV1OrdersByOrderIdShippingAddressData, type PatchV1OrdersByOrderIdShippingAddressErrors, type PatchV1OrdersByOrderIdShippingAddressResponse, type PatchV1OrdersByOrderIdShippingAddressResponses, type PatchV1SubscriptionsBySubscriptionIdData, type PatchV1SubscriptionsBySubscriptionIdResponse, type PatchV1SubscriptionsBySubscriptionIdResponses, type PostV1ApprovalsByApprovalIdExecuteData, type PostV1ApprovalsByApprovalIdExecuteResponse, type PostV1ApprovalsByApprovalIdExecuteResponses, type PostV1ApprovalsByApprovalIdRejectData, type PostV1ApprovalsByApprovalIdRejectResponse, type PostV1ApprovalsByApprovalIdRejectResponses, type PostV1CartsByIdItemsData, type PostV1CartsByIdItemsErrors, type PostV1CartsByIdItemsResponses, type PostV1CartsData, type PostV1CartsResponse, type PostV1CartsResponses, type PostV1CheckoutStripeData, type PostV1CheckoutStripeResponse, type PostV1CheckoutStripeResponses, type PostV1DiscountsData, type PostV1DiscountsResponse, type PostV1DiscountsResponses, type PostV1DiscountsValidateData, type PostV1DiscountsValidateResponse, type PostV1DiscountsValidateResponses, type PostV1GiftCardsData, type PostV1GiftCardsRedeemData, type PostV1GiftCardsRedeemResponse, type PostV1GiftCardsRedeemResponses, type PostV1GiftCardsResponse, type PostV1GiftCardsResponses, type PostV1InventoryData, type PostV1InventoryResponse, type PostV1InventoryResponses, type PostV1LoyaltyRedeemData, type PostV1LoyaltyRedeemResponse, type PostV1LoyaltyRedeemResponses, type PostV1OrdersByOrderIdCancelData, type PostV1OrdersByOrderIdCancelErrors, type PostV1OrdersByOrderIdCancelResponses, type PostV1OrdersByOrderIdFulfillData, type PostV1OrdersByOrderIdFulfillResponse, type PostV1OrdersByOrderIdFulfillResponses, type PostV1OrdersByOrderIdRefundData, type PostV1OrdersByOrderIdRefundResponse, type PostV1OrdersByOrderIdRefundResponses, type PostV1OrdersByOrderIdResendConfirmationData, type PostV1OrdersByOrderIdResendConfirmationErrors, type PostV1OrdersByOrderIdResendConfirmationResponse, type PostV1OrdersByOrderIdResendConfirmationResponses, type PostV1OrdersByOrderIdResendInvoiceData, type PostV1OrdersByOrderIdResendInvoiceErrors, type PostV1OrdersByOrderIdResendInvoiceResponse, type PostV1OrdersByOrderIdResendInvoiceResponses, type PostV1TicketsByIdReplyData, type PostV1TicketsByIdReplyResponse, type PostV1TicketsByIdReplyResponses, type PostV1TicketsData, type PostV1TicketsResponse, type PostV1TicketsResponses, type Product, type ProductListResponse, type ProductVariant, type PutV1CartsByIdItemsByLineIdData, type PutV1CartsByIdItemsByLineIdErrors, type PutV1CartsByIdItemsByLineIdResponses, type ReferralInfo, Reponse, type ReponseOptions, type Subscription, type SuccessResponse, type Ticket, type TicketListResponse, type UpdateCartItemInput, client, deleteV1CartsByIdItemsByLineId, getV1CartsById, getV1Collections, getV1Discounts, getV1GiftCards, getV1Inventory, getV1Loyalty, getV1LoyaltyReferral, getV1Orders, getV1Products, getV1ProductsById, getV1Tickets, getV1TicketsById, getV1UtilsGeocode, patchV1OrdersByOrderIdShippingAddress, patchV1SubscriptionsBySubscriptionId, postV1ApprovalsByApprovalIdExecute, postV1ApprovalsByApprovalIdReject, postV1Carts, postV1CartsByIdItems, postV1CheckoutStripe, postV1Discounts, postV1DiscountsValidate, postV1GiftCards, postV1GiftCardsRedeem, postV1Inventory, postV1LoyaltyRedeem, postV1OrdersByOrderIdCancel, postV1OrdersByOrderIdFulfill, postV1OrdersByOrderIdRefund, postV1OrdersByOrderIdResendConfirmation, postV1OrdersByOrderIdResendInvoice, postV1Tickets, postV1TicketsByIdReply, putV1CartsByIdItemsByLineId };
+export { type AddCartItemInput, type Cart, type CheckoutSession, type ClientOptions$1 as ClientOptions, type Collection, type CollectionDetail, type CollectionListResponse, type CollectionProductsResponse, type CreateCartInput, type CreateCheckoutInput, type DeleteV1CartsByIdItemsByLineIdData, type DeleteV1CartsByIdItemsByLineIdErrors, type DeleteV1CartsByIdItemsByLineIdResponses, type GetV1CartsByIdData, type GetV1CartsByIdErrors, type GetV1CartsByIdResponse, type GetV1CartsByIdResponses, type GetV1CollectionsByHandleData, type GetV1CollectionsByHandleErrors, type GetV1CollectionsByHandleProductsData, type GetV1CollectionsByHandleProductsErrors, type GetV1CollectionsByHandleProductsResponse, type GetV1CollectionsByHandleProductsResponses, type GetV1CollectionsByHandleResponse, type GetV1CollectionsByHandleResponses, type GetV1CollectionsData, type GetV1CollectionsResponse, type GetV1CollectionsResponses, type GetV1PoliciesByTypeData, type GetV1PoliciesByTypeErrors, type GetV1PoliciesByTypeResponse, type GetV1PoliciesByTypeResponses, type GetV1PoliciesData, type GetV1PoliciesResponse, type GetV1PoliciesResponses, type GetV1ProductsByIdData, type GetV1ProductsByIdErrors, type GetV1ProductsByIdResponse, type GetV1ProductsByIdResponses, type GetV1ProductsData, type GetV1ProductsResponse, type GetV1ProductsResponses, type GetV1ShippingRatesData, type GetV1ShippingRatesErrors, type GetV1ShippingRatesResponse, type GetV1ShippingRatesResponses, type GetV1ThemeData, type GetV1ThemeResponse, type GetV1ThemeResponses, type Options, type PatchV1OrdersByOrderIdShippingAddressData, type PatchV1OrdersByOrderIdShippingAddressErrors, type PatchV1OrdersByOrderIdShippingAddressResponse, type PatchV1OrdersByOrderIdShippingAddressResponses, type Policy, type PolicyDetailResponse, type PolicyListResponse, type PostV1CartsByIdItemsData, type PostV1CartsByIdItemsErrors, type PostV1CartsByIdItemsResponses, type PostV1CartsData, type PostV1CartsResponse, type PostV1CartsResponses, type PostV1CheckoutStripeData, type PostV1CheckoutStripeResponse, type PostV1CheckoutStripeResponses, type PostV1OrdersByOrderIdCancelData, type PostV1OrdersByOrderIdCancelErrors, type PostV1OrdersByOrderIdCancelResponses, type PostV1OrdersByOrderIdResendConfirmationData, type PostV1OrdersByOrderIdResendConfirmationErrors, type PostV1OrdersByOrderIdResendConfirmationResponse, type PostV1OrdersByOrderIdResendConfirmationResponses, type PostV1OrdersByOrderIdResendInvoiceData, type PostV1OrdersByOrderIdResendInvoiceErrors, type PostV1OrdersByOrderIdResendInvoiceResponse, type PostV1OrdersByOrderIdResendInvoiceResponses, type Product, type ProductListResponse, type ProductMetafield, type ProductVariant, type PutV1CartsByIdItemsByLineIdData, type PutV1CartsByIdItemsByLineIdErrors, type PutV1CartsByIdItemsByLineIdResponses, Reponse, type ReponseOptions, type ShippingRate, type ShippingRatesResponse, type ThemeResponse, type UpdateCartItemInput, client, deleteV1CartsByIdItemsByLineId, getV1CartsById, getV1Collections, getV1CollectionsByHandle, getV1CollectionsByHandleProducts, getV1Policies, getV1PoliciesByType, getV1Products, getV1ProductsById, getV1ShippingRates, getV1Theme, patchV1OrdersByOrderIdShippingAddress, postV1Carts, postV1CartsByIdItems, postV1CheckoutStripe, postV1OrdersByOrderIdCancel, postV1OrdersByOrderIdResendConfirmation, postV1OrdersByOrderIdResendInvoice, putV1CartsByIdItemsByLineId };
