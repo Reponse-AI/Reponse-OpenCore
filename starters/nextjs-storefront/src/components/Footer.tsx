@@ -10,8 +10,7 @@ const POLICY_LINKS = [
   { label: "Legal Notice", href: "/policies/legal-notice" },
 ];
 
-export function Footer() {
-  const storeName = process.env.NEXT_PUBLIC_STORE_NAME || "Store";
+export function Footer({ storeName = "Store" }: { storeName?: string }) {
   const year = new Date().getFullYear();
 
   return (

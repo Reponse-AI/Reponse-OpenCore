@@ -4,7 +4,7 @@ import { reponse } from "@/lib/reponse";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

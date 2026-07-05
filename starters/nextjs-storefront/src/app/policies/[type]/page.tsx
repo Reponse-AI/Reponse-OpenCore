@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_REPONSE_API_URL || "https://api.reponse.ai";
+  process.env.REPONSE_API_URL || "https://api.reponse.ai";
 const API_KEY = process.env.REPONSE_API_KEY || "";
 
 interface PolicyData {
@@ -35,7 +35,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { type } = await params;
   const policy = await fetchPolicy(type);
-  const storeName = process.env.NEXT_PUBLIC_STORE_NAME || "Store";
+  const storeName = process.env.STORE_NAME || "Store";
 
   return {
     title: policy ? `${policy.title} — ${storeName}` : `Policy — ${storeName}`,

@@ -24,10 +24,10 @@ export default async function CheckoutPage() {
         <Header />
         <EmbeddedCheckout
           cartId={cartId}
-          marketId={process.env.NEXT_PUBLIC_MARKET_ID || ""}
-          apiUrl={process.env.NEXT_PUBLIC_REPONSE_API_URL || ""}
-          apiKey={process.env.NEXT_PUBLIC_REPONSE_API_KEY || ""}
-          stripePublishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
+          marketId={process.env.MARKET_ID || ""}
+          apiUrl={process.env.REPONSE_API_URL || ""}
+          apiKey={process.env.REPONSE_API_KEY || ""}
+          stripePublishableKey={process.env.STRIPE_PUBLISHABLE_KEY || ""}
         />
       </div>
     );
@@ -41,8 +41,8 @@ export default async function CheckoutPage() {
     const response = await reponse.cart.createCheckout({
       body: {
         cart_id: cartId,
-        success_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/order/success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/cart`,
+        success_url: `${process.env.SITE_URL || "http://localhost:3000"}/order/success`,
+        cancel_url: `${process.env.SITE_URL || "http://localhost:3000"}/cart`,
       }
     });
     

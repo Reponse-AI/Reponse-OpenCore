@@ -31,11 +31,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
-        <Footer />
-        {process.env.NEXT_PUBLIC_WORKSPACE_ID && (
+        <Footer storeName={process.env.STORE_NAME || "Store"} />
+        {process.env.REPONSE_WORKSPACE_ID && (
           <Script
             src="https://reponse.ai/assets/sdk/reponse-widget.min.js"
-            data-workspace-id={process.env.NEXT_PUBLIC_WORKSPACE_ID}
+            data-workspace-id={process.env.REPONSE_WORKSPACE_ID}
             strategy="lazyOnload"
           />
         )}

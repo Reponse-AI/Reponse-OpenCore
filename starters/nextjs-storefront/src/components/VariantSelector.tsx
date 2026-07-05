@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Reponse } from "@reponseai/sdk";
-
+import { reponse as reponseClient } from "@/lib/reponse";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface OptionDefinition {
@@ -43,12 +42,6 @@ function formatPrice(amount: number, currency: string) {
 }
 
 const CART_STORAGE_KEY = "reponse_cart_id";
-const WORKSPACE_ID = process.env.NEXT_PUBLIC_WORKSPACE_ID ?? "";
-
-const reponseClient = new Reponse({
-  apiKey: process.env.NEXT_PUBLIC_REPONSE_API_KEY ?? "",
-  baseUrl: process.env.NEXT_PUBLIC_REPONSE_API_URL,
-});
 
 async function ensureCart(currency: string): Promise<string> {
   const stored = localStorage.getItem(CART_STORAGE_KEY);

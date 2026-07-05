@@ -28,7 +28,7 @@ export async function generateMetadata({
 
   if (!product) return { title: "Product Not Found" };
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const siteUrl = process.env.SITE_URL || "";
   const canonicalUrl = `${siteUrl}/products/${slug}`;
   const plainDescription = product.seo_description || product.description?.replace(/<[^>]*>/g, "") || undefined;
 
@@ -95,7 +95,7 @@ export default async function ProductPage({
     brand: { "@type": "Brand", name: "Store" },
     offers: {
       "@type": "Offer",
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/products/${slug}`,
+      url: `${process.env.SITE_URL || ""}/products/${slug}`,
       priceCurrency: currency,
       price: product.price,
       availability: product.in_stock
@@ -106,7 +106,7 @@ export default async function ProductPage({
   };
 
   // JSON-LD: BreadcrumbList matching the visual breadcrumbs
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const siteUrl = process.env.SITE_URL || "";
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

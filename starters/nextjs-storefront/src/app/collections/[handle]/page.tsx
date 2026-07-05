@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
     const collection = collectionsRes.data?.data?.find((c: any) => c.handle === handle);
     
     if (collection) {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+      const siteUrl = process.env.SITE_URL || "";
       const canonicalUrl = `${siteUrl}/collections/${handle}`;
 
       return {
@@ -46,7 +46,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
     if (collection) {
       const apiUrl = process.env.REPONSE_API_URL || "http://localhost:3000/api";
       const apiKey = process.env.REPONSE_API_KEY || "";
-      const workspaceId = process.env.NEXT_PUBLIC_WORKSPACE_ID || "";
+      const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
 
       const productsRes = await fetch(
         `${apiUrl}/api/v1/collections/${handle}/products?workspace_id=${workspaceId}&limit=50`,
@@ -69,7 +69,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
     notFound();
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const siteUrl = process.env.SITE_URL || "";
   const collectionTitle = collection?.title || "Collection";
 
   // JSON-LD: CollectionPage with ItemList
