@@ -30,6 +30,15 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Runtime env injection — allows client components to read server-only vars */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__ENV=${JSON.stringify({
+              REPONSE_API_URL: process.env.REPONSE_API_URL || "https://reponse.ai/api",
+              REPONSE_WORKSPACE_ID: process.env.REPONSE_WORKSPACE_ID || "",
+            })}`,
+          }}
+        />
         {children}
         <Footer storeName={process.env.STORE_NAME || "Store"} />
         {process.env.REPONSE_WORKSPACE_ID && (
