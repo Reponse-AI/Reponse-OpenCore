@@ -37,7 +37,6 @@ export async function generateMetadata({
     description: plainDescription,
     alternates: { canonical: canonicalUrl },
     openGraph: {
-      type: "og:product" as any,
       url: canonicalUrl,
       title: product.seo_title || product.title,
       description: plainDescription,
@@ -73,11 +72,19 @@ export default async function ProductPage({
   const hasOnlyDefaultVariant: boolean =
     p.has_only_default_variant ?? variants.length <= 1;
 
-  const optionDefinitions: Array<{
-    name: string;
-    position: number;
-    values: string[];
-  }> = p.option_definitions ?? [];
+  // API returns option_definitions as string[] (option names).
+  // Rebuild structured {name, position, values} from variant option_values.
+  const rawOptionNames: string[] = p.option_definitions ?? [];
+  const optionDefinitions = rawOptionNames.map((name: string, idx: number) => {
+    const values = [
+      ...new Set(
+        variants
+          .map((v: { option_values?: string[] }) => v.option_values?.[idx])
+          .filter(Boolean)
+      ),
+    ] as string[];
+    return { name, position: idx + 1, values };
+  });
 
   const currency: string = p.currency || "EUR";
   const images: string[] = p.images ?? [];
