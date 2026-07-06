@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCheckout } from './CheckoutProvider';
+import { formatPrice } from '@/lib/currency';
 
 // ─── Inner Payment Form ──────────────────────────────────────────────────────
 
@@ -65,10 +66,7 @@ function PaymentForm() {
     }
   };
 
-  const formattedTotal = new Intl.NumberFormat('en', {
-    style: 'currency',
-    currency: currency || 'EUR',
-  }).format(total);
+  const formattedTotal = formatPrice(total, currency);
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

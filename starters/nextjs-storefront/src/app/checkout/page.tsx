@@ -38,12 +38,17 @@ export default async function CheckoutPage() {
   let error = null;
 
   try {
+    // market_id is accepted by the API but not yet in the SDK's
+    // CreateCheckoutInput type — spread to bypass strict typing until
+    // the OpenAPI spec is regenerated.
+    const marketId = process.env.MARKET_ID || undefined;
     const response = await reponse.cart.createCheckout({
       body: {
         cart_id: cartId,
         success_url: `${process.env.SITE_URL || "http://localhost:3000"}/order/success`,
         cancel_url: `${process.env.SITE_URL || "http://localhost:3000"}/cart`,
-      }
+        ...(marketId ? { market_id: marketId } : {}),
+      } as Parameters<typeof reponse.cart.createCheckout>[0] extends { body?: infer B } ? B : never
     });
     
     if (response.data?.url) {

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { addToCart } from "@/lib/cart";
+import { formatPrice } from "@/lib/currency";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface OptionDefinition {
@@ -31,15 +32,7 @@ interface VariantSelectorProps {
   initialCompareAtPrice?: number | null;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatPrice(amount: number, currency: string) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: currency || "EUR",
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 

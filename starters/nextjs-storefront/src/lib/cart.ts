@@ -61,10 +61,14 @@ export async function addToCart(productId: string, variantId?: string, quantity:
   const cartId = await getCartId();
 
   if (!cartId) {
-    // Create new cart with the item
+    // Create new cart with the item — pass market currency so the cart
+    // is not created in the API default (EUR) when the market uses a
+    // different base_currency.
+    const marketCurrency = process.env.MARKET_CURRENCY || undefined;
     const { data: cart, error } = (await reponse.cart.create({
       body: {
-        items: [{ product_id: productId, variant_id: variantId, quantity }]
+        items: [{ product_id: productId, variant_id: variantId, quantity }],
+        ...(marketCurrency ? { currency: marketCurrency } : {}),
       }
     })) as SdkResult<Cart>;
     if (error || !cart?.id) {

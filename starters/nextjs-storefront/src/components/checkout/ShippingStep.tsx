@@ -2,6 +2,7 @@
 
 import { useState, useEffect, FormEvent, useCallback } from 'react';
 import { useCheckout, ShippingRate } from './CheckoutProvider';
+import { formatPrice } from '@/lib/currency';
 
 const COUNTRIES = [
   { code: 'FR', name: 'France' },
@@ -19,7 +20,7 @@ const COUNTRIES = [
 ];
 
 export function ShippingStep() {
-  const { step, setStep, setShippingAddress, setShippingRate, cartId, apiUrl, apiKey } = useCheckout();
+  const { step, setStep, setShippingAddress, setShippingRate, cartId, marketId, apiUrl, apiKey } = useCheckout();
 
   const [address, setAddress] = useState({
     address1: '',
@@ -38,8 +39,9 @@ export function ShippingStep() {
     setLoadingRates(true);
     setError(null);
     try {
+      const marketParam = marketId ? `&market_id=${marketId}` : '';
       const res = await fetch(
-        `${apiUrl}/api/v1/shipping/rates?country=${country}&cart_id=${cartId}`,
+        `${apiUrl}/api/v1/shipping/rates?country=${country}&cart_id=${cartId}${marketParam}`,
         { headers: { 'Authorization': `Bearer ${apiKey}` } }
       );
       if (!res.ok) throw new Error('Failed to fetch shipping rates');
@@ -53,7 +55,7 @@ export function ShippingStep() {
     } finally {
       setLoadingRates(false);
     }
-  }, [apiUrl, apiKey, cartId]);
+  }, [apiUrl, apiKey, cartId, marketId]);
 
   useEffect(() => {
     if (step === 'shipping') {
@@ -103,7 +105,7 @@ export function ShippingStep() {
 
   const formatRatePrice = (rate: ShippingRate) => {
     if (rate.is_free || rate.price === 0) return 'Free';
-    return new Intl.NumberFormat('en', { style: 'currency', currency: rate.currency || 'EUR' }).format(rate.price);
+    return formatPrice(rate.price, rate.currency || 'EUR');
   };
 
   return (

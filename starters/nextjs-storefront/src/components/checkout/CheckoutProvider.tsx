@@ -212,6 +212,7 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
           cart_total: s.subtotal,
           cart_quantity: s.items?.length || 0,
           customer_tier: undefined,
+          market_id: s.marketId || undefined,
         }),
       });
       if (!res.ok) {
