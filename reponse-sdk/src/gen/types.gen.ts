@@ -76,6 +76,22 @@ export type CollectionListResponse = {
     data: Array<Collection>;
 };
 
+export type AppliedDiscount = {
+    code: string;
+    /**
+     * Discount amount in cart currency
+     */
+    savings: number;
+    description: string | null;
+};
+
+export type AutomaticDiscount = {
+    code: string;
+    type: string;
+    value: number;
+    savings: number;
+};
+
 export type Cart = {
     id: string;
     items: Array<{
@@ -86,9 +102,51 @@ export type Cart = {
         price: number;
     }>;
     subtotal: number;
+    /**
+     * Sum of all applied discounts
+     */
+    discount_total?: number;
+    /**
+     * Subtotal minus discounts
+     */
+    adjusted_total?: number;
+    /**
+     * Manually applied promo codes
+     */
+    applied_discounts?: Array<AppliedDiscount>;
+    /**
+     * Auto-applied discounts
+     */
+    automatic_discounts?: Array<AutomaticDiscount>;
     currency: string;
     created_at: string;
     updated_at: string;
+};
+
+export type ApplyPromoCodeInput = {
+    /**
+     * Promo code to apply
+     */
+    code: string;
+    /**
+     * Optional market scope
+     */
+    market_id?: string;
+};
+
+export type ApplyPromoCodeResponse = {
+    applied: boolean;
+    code: string;
+    source: string;
+    discount: number;
+    actions?: number;
+};
+
+export type RemovePromoCodeInput = {
+    /**
+     * Code to remove. Omit to remove all.
+     */
+    code?: string;
 };
 
 export type CreateCartInput = {
@@ -398,6 +456,64 @@ export type PutV1CartsByIdItemsByLineIdResponses = {
      */
     200: unknown;
 };
+
+export type DeleteV1CartsByIdPromotionsData = {
+    body?: RemovePromoCodeInput;
+    path: {
+        /**
+         * Cart ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/carts/{id}/promotions';
+};
+
+export type DeleteV1CartsByIdPromotionsErrors = {
+    /**
+     * Cart not found
+     */
+    404: unknown;
+};
+
+export type DeleteV1CartsByIdPromotionsResponses = {
+    /**
+     * Promotion removed
+     */
+    200: unknown;
+};
+
+export type PostV1CartsByIdPromotionsData = {
+    body?: ApplyPromoCodeInput;
+    path: {
+        /**
+         * Cart ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/carts/{id}/promotions';
+};
+
+export type PostV1CartsByIdPromotionsErrors = {
+    /**
+     * Code expired, usage limit reached, or cart does not qualify
+     */
+    400: unknown;
+    /**
+     * Cart not found or invalid promotion code
+     */
+    404: unknown;
+};
+
+export type PostV1CartsByIdPromotionsResponses = {
+    /**
+     * Promotion applied successfully
+     */
+    200: ApplyPromoCodeResponse;
+};
+
+export type PostV1CartsByIdPromotionsResponse = PostV1CartsByIdPromotionsResponses[keyof PostV1CartsByIdPromotionsResponses];
 
 export type PatchV1OrdersByOrderIdShippingAddressData = {
     body?: {

@@ -10,6 +10,8 @@ import {
   postV1CartsByIdItems,
   putV1CartsByIdItemsByLineId,
   deleteV1CartsByIdItemsByLineId,
+  postV1CartsByIdPromotions,
+  deleteV1CartsByIdPromotions,
   patchV1OrdersByOrderIdShippingAddress,
   postV1OrdersByOrderIdResendConfirmation,
   postV1OrdersByOrderIdResendInvoice,
@@ -137,6 +139,19 @@ export class Reponse {
      * @param params.query.country - Optional ISO country code
      */
     getShippingRates: async (params: Parameters<typeof getV1ShippingRates>[0]) => getV1ShippingRates(params),
+    /**
+     * Apply a promotion code to a cart.
+     * @param params.path.id - Cart UUID
+     * @param params.body.code - Promo code string
+     * @param params.body.market_id - Optional market scope
+     */
+    applyPromoCode: async (params: Parameters<typeof postV1CartsByIdPromotions>[0]) => postV1CartsByIdPromotions(params),
+    /**
+     * Remove a promotion code from a cart (or all codes if no code specified).
+     * @param params.path.id - Cart UUID
+     * @param params.body.code - Optional code to remove (omit to remove all)
+     */
+    removePromoCode: async (params: Parameters<typeof deleteV1CartsByIdPromotions>[0]) => deleteV1CartsByIdPromotions(params),
   };
 
   // ─── Orders ───────────────────────────────────────────────

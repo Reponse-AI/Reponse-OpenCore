@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/Header";
-import { getCart, updateCartItem, removeCartItem } from "@/lib/cart";
+import { getCart, updateCartItem, removeCartItem, removePromoCode } from "@/lib/cart";
+import { formatPrice } from "@/lib/currency";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { PromoCodeForm } from "@/components/PromoCodeForm";
 
 export const metadata = {
   title: "Your Cart | Reponse Store",
@@ -15,6 +17,14 @@ export default async function CartPage() {
   const isEmpty = items.length === 0;
   // Non-null alias — safe because in the non-empty branch, cart is always defined
   const c = cart as NonNullable<typeof cart>;
+
+  // Discount data from the enriched GET /v1/carts/:id response
+  const appliedDiscounts: { code: string; savings: number; description: string | null }[] =
+    (c as any)?.applied_discounts || [];
+  const automaticDiscounts: { code: string; type: string; value: number; savings: number }[] =
+    (c as any)?.automatic_discounts || [];
+  const discountTotal: number = (c as any)?.discount_total || 0;
+  const adjustedTotal: number = (c as any)?.adjusted_total ?? (c as any)?.subtotal ?? 0;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
@@ -50,7 +60,7 @@ export default async function CartPage() {
                       <Link href={`/products/${item.product?.handle || item.product_id}`} className="font-semibold text-lg hover:underline">
                         {item.product?.title || `Product #${(item.product_id || "").slice(0, 8)}`}
                       </Link>
-                      <span className="font-bold">{item.price} {c.currency}</span>
+                      <span className="font-bold">{formatPrice(item.price, c.currency)}</span>
                     </div>
                     
                     <div className="mt-auto flex items-center justify-between">
@@ -95,17 +105,70 @@ export default async function CartPage() {
                 
                 <div className="flex justify-between mb-4 text-gray-600">
                   <span>Subtotal</span>
-                  <span>{c.subtotal} {c.currency}</span>
+                  <span>{formatPrice(c.subtotal, c.currency)}</span>
                 </div>
+
+                {/* Applied promo codes */}
+                {appliedDiscounts.length > 0 && (
+                  <div className="mb-4 flex flex-col gap-2">
+                    {appliedDiscounts.map((d) => (
+                      <div key={d.code} className="flex items-center justify-between bg-emerald-50 rounded-lg px-3 py-2 border border-emerald-100">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-emerald-700 bg-emerald-100 rounded px-1.5 py-0.5 uppercase tracking-wide">
+                            {d.code}
+                          </span>
+                          <span className="text-sm text-emerald-700 font-medium">
+                            −{formatPrice(d.savings, c.currency)}
+                          </span>
+                        </div>
+                        <form action={async () => {
+                          "use server";
+                          await removePromoCode(d.code);
+                          revalidatePath("/cart");
+                        }}>
+                          <button
+                            type="submit"
+                            className="w-5 h-5 flex items-center justify-center rounded-full text-emerald-500 hover:bg-emerald-200 hover:text-emerald-700 transition-colors text-xs"
+                            title={`Remove ${d.code}`}
+                          >
+                            ✕
+                          </button>
+                        </form>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Automatic discounts (non-removable) */}
+                {automaticDiscounts.filter((d) => d.savings > 0).map((d) => (
+                  <div key={d.code} className="flex items-center justify-between mb-2 text-gray-500 text-sm">
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-xs bg-gray-100 rounded px-1.5 py-0.5 font-medium">{d.code}</span>
+                      auto
+                    </span>
+                    <span className="text-emerald-600 font-medium">−{formatPrice(d.savings, c.currency)}</span>
+                  </div>
+                ))}
+
+                {/* Discount total line */}
+                {discountTotal > 0 && (
+                  <div className="flex justify-between mb-4 text-emerald-600 font-medium">
+                    <span>Discount</span>
+                    <span>−{formatPrice(discountTotal, c.currency)}</span>
+                  </div>
+                )}
                 
-                <div className="flex justify-between mb-6 text-gray-600">
+                <div className="flex justify-between mb-4 text-gray-600">
                   <span>Shipping</span>
                   <span>Calculated at checkout</span>
                 </div>
+
+                {/* Promo code input */}
+                <PromoCodeForm />
                 
                 <div className="border-t border-gray-100 pt-6 mb-8 flex justify-between items-center">
                   <span className="font-bold text-lg">Total</span>
-                  <span className="font-extrabold text-2xl">{c.subtotal} {c.currency}</span>
+                  <span className="font-extrabold text-2xl">{formatPrice(adjustedTotal, c.currency)}</span>
                 </div>
 
                 <form action={async () => {

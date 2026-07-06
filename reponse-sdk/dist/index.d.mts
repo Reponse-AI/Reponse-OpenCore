@@ -67,6 +67,20 @@ type Collection = {
 type CollectionListResponse = {
     data: Array<Collection>;
 };
+type AppliedDiscount = {
+    code: string;
+    /**
+     * Discount amount in cart currency
+     */
+    savings: number;
+    description: string | null;
+};
+type AutomaticDiscount = {
+    code: string;
+    type: string;
+    value: number;
+    savings: number;
+};
 type Cart = {
     id: string;
     items: Array<{
@@ -77,9 +91,48 @@ type Cart = {
         price: number;
     }>;
     subtotal: number;
+    /**
+     * Sum of all applied discounts
+     */
+    discount_total?: number;
+    /**
+     * Subtotal minus discounts
+     */
+    adjusted_total?: number;
+    /**
+     * Manually applied promo codes
+     */
+    applied_discounts?: Array<AppliedDiscount>;
+    /**
+     * Auto-applied discounts
+     */
+    automatic_discounts?: Array<AutomaticDiscount>;
     currency: string;
     created_at: string;
     updated_at: string;
+};
+type ApplyPromoCodeInput = {
+    /**
+     * Promo code to apply
+     */
+    code: string;
+    /**
+     * Optional market scope
+     */
+    market_id?: string;
+};
+type ApplyPromoCodeResponse = {
+    applied: boolean;
+    code: string;
+    source: string;
+    discount: number;
+    actions?: number;
+};
+type RemovePromoCodeInput = {
+    /**
+     * Code to remove. Omit to remove all.
+     */
+    code?: string;
 };
 type CreateCartInput = {
     items?: Array<{
@@ -353,6 +406,57 @@ type PutV1CartsByIdItemsByLineIdResponses = {
      */
     200: unknown;
 };
+type DeleteV1CartsByIdPromotionsData = {
+    body?: RemovePromoCodeInput;
+    path: {
+        /**
+         * Cart ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/carts/{id}/promotions';
+};
+type DeleteV1CartsByIdPromotionsErrors = {
+    /**
+     * Cart not found
+     */
+    404: unknown;
+};
+type DeleteV1CartsByIdPromotionsResponses = {
+    /**
+     * Promotion removed
+     */
+    200: unknown;
+};
+type PostV1CartsByIdPromotionsData = {
+    body?: ApplyPromoCodeInput;
+    path: {
+        /**
+         * Cart ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/carts/{id}/promotions';
+};
+type PostV1CartsByIdPromotionsErrors = {
+    /**
+     * Code expired, usage limit reached, or cart does not qualify
+     */
+    400: unknown;
+    /**
+     * Cart not found or invalid promotion code
+     */
+    404: unknown;
+};
+type PostV1CartsByIdPromotionsResponses = {
+    /**
+     * Promotion applied successfully
+     */
+    200: ApplyPromoCodeResponse;
+};
+type PostV1CartsByIdPromotionsResponse = PostV1CartsByIdPromotionsResponses[keyof PostV1CartsByIdPromotionsResponses];
 type PatchV1OrdersByOrderIdShippingAddressData = {
     body?: {
         shipping_address: {
@@ -1095,6 +1199,18 @@ declare const deleteV1CartsByIdItemsByLineId: <ThrowOnError extends boolean = fa
  */
 declare const putV1CartsByIdItemsByLineId: <ThrowOnError extends boolean = false>(options: Options<PutV1CartsByIdItemsByLineIdData, ThrowOnError>) => RequestResult<PutV1CartsByIdItemsByLineIdResponses, PutV1CartsByIdItemsByLineIdErrors, ThrowOnError, "fields">;
 /**
+ * Remove promo code
+ *
+ * Remove a promotion code from a cart (or all codes if no code specified)
+ */
+declare const deleteV1CartsByIdPromotions: <ThrowOnError extends boolean = false>(options: Options<DeleteV1CartsByIdPromotionsData, ThrowOnError>) => RequestResult<DeleteV1CartsByIdPromotionsResponses, DeleteV1CartsByIdPromotionsErrors, ThrowOnError, "fields">;
+/**
+ * Apply promo code
+ *
+ * Apply a promotion code to a cart
+ */
+declare const postV1CartsByIdPromotions: <ThrowOnError extends boolean = false>(options: Options<PostV1CartsByIdPromotionsData, ThrowOnError>) => RequestResult<PostV1CartsByIdPromotionsResponses, PostV1CartsByIdPromotionsErrors, ThrowOnError, "fields">;
+/**
  * Update shipping address
  *
  * Update shipping address of an order
@@ -1427,6 +1543,45 @@ declare class Reponse {
             request?: Request;
             response?: Response;
         })>;
+        /**
+         * Apply a promotion code to a cart.
+         * @param params.path.id - Cart UUID
+         * @param params.body.code - Promo code string
+         * @param params.body.market_id - Optional market scope
+         */
+        applyPromoCode: (params: Parameters<typeof postV1CartsByIdPromotions>[0]) => Promise<{
+            data: ApplyPromoCodeResponse;
+            request: Request;
+            response: Response;
+        } | (({
+            data: ApplyPromoCodeResponse;
+            error: undefined;
+        } | {
+            data: undefined;
+            error: unknown;
+        }) & {
+            request?: Request;
+            response?: Response;
+        })>;
+        /**
+         * Remove a promotion code from a cart (or all codes if no code specified).
+         * @param params.path.id - Cart UUID
+         * @param params.body.code - Optional code to remove (omit to remove all)
+         */
+        removePromoCode: (params: Parameters<typeof deleteV1CartsByIdPromotions>[0]) => Promise<{
+            data: unknown;
+            request: Request;
+            response: Response;
+        } | (({
+            data: unknown;
+            error: undefined;
+        } | {
+            data: undefined;
+            error: unknown;
+        }) & {
+            request?: Request;
+            response?: Response;
+        })>;
     };
     /** Order management: update address, resend emails, cancel. */
     orders: {
@@ -1589,4 +1744,4 @@ declare class Reponse {
     };
 }
 
-export { type AddCartItemInput, type Cart, type CheckoutSession, type ClientOptions$1 as ClientOptions, type Collection, type CollectionDetail, type CollectionListResponse, type CollectionProductsResponse, type CreateCartInput, type CreateCheckoutInput, type DeleteV1CartsByIdItemsByLineIdData, type DeleteV1CartsByIdItemsByLineIdErrors, type DeleteV1CartsByIdItemsByLineIdResponses, type GetV1CartsByIdData, type GetV1CartsByIdErrors, type GetV1CartsByIdResponse, type GetV1CartsByIdResponses, type GetV1CollectionsByHandleData, type GetV1CollectionsByHandleErrors, type GetV1CollectionsByHandleProductsData, type GetV1CollectionsByHandleProductsErrors, type GetV1CollectionsByHandleProductsResponse, type GetV1CollectionsByHandleProductsResponses, type GetV1CollectionsByHandleResponse, type GetV1CollectionsByHandleResponses, type GetV1CollectionsData, type GetV1CollectionsResponse, type GetV1CollectionsResponses, type GetV1PoliciesByTypeData, type GetV1PoliciesByTypeErrors, type GetV1PoliciesByTypeResponse, type GetV1PoliciesByTypeResponses, type GetV1PoliciesData, type GetV1PoliciesResponse, type GetV1PoliciesResponses, type GetV1ProductsByIdData, type GetV1ProductsByIdErrors, type GetV1ProductsByIdResponse, type GetV1ProductsByIdResponses, type GetV1ProductsData, type GetV1ProductsResponse, type GetV1ProductsResponses, type GetV1ShippingRatesData, type GetV1ShippingRatesErrors, type GetV1ShippingRatesResponse, type GetV1ShippingRatesResponses, type GetV1ThemeData, type GetV1ThemeResponse, type GetV1ThemeResponses, type Options, type PatchV1OrdersByOrderIdShippingAddressData, type PatchV1OrdersByOrderIdShippingAddressErrors, type PatchV1OrdersByOrderIdShippingAddressResponse, type PatchV1OrdersByOrderIdShippingAddressResponses, type Policy, type PolicyDetailResponse, type PolicyListResponse, type PostV1CartsByIdItemsData, type PostV1CartsByIdItemsErrors, type PostV1CartsByIdItemsResponses, type PostV1CartsData, type PostV1CartsResponse, type PostV1CartsResponses, type PostV1CheckoutStripeData, type PostV1CheckoutStripeResponse, type PostV1CheckoutStripeResponses, type PostV1OrdersByOrderIdCancelData, type PostV1OrdersByOrderIdCancelErrors, type PostV1OrdersByOrderIdCancelResponses, type PostV1OrdersByOrderIdResendConfirmationData, type PostV1OrdersByOrderIdResendConfirmationErrors, type PostV1OrdersByOrderIdResendConfirmationResponse, type PostV1OrdersByOrderIdResendConfirmationResponses, type PostV1OrdersByOrderIdResendInvoiceData, type PostV1OrdersByOrderIdResendInvoiceErrors, type PostV1OrdersByOrderIdResendInvoiceResponse, type PostV1OrdersByOrderIdResendInvoiceResponses, type Product, type ProductListResponse, type ProductMetafield, type ProductVariant, type PutV1CartsByIdItemsByLineIdData, type PutV1CartsByIdItemsByLineIdErrors, type PutV1CartsByIdItemsByLineIdResponses, Reponse, type ReponseOptions, type ShippingRate, type ShippingRatesResponse, type ThemeResponse, type UpdateCartItemInput, client, deleteV1CartsByIdItemsByLineId, getV1CartsById, getV1Collections, getV1CollectionsByHandle, getV1CollectionsByHandleProducts, getV1Policies, getV1PoliciesByType, getV1Products, getV1ProductsById, getV1ShippingRates, getV1Theme, patchV1OrdersByOrderIdShippingAddress, postV1Carts, postV1CartsByIdItems, postV1CheckoutStripe, postV1OrdersByOrderIdCancel, postV1OrdersByOrderIdResendConfirmation, postV1OrdersByOrderIdResendInvoice, putV1CartsByIdItemsByLineId };
+export { type AddCartItemInput, type AppliedDiscount, type ApplyPromoCodeInput, type ApplyPromoCodeResponse, type AutomaticDiscount, type Cart, type CheckoutSession, type ClientOptions$1 as ClientOptions, type Collection, type CollectionDetail, type CollectionListResponse, type CollectionProductsResponse, type CreateCartInput, type CreateCheckoutInput, type DeleteV1CartsByIdItemsByLineIdData, type DeleteV1CartsByIdItemsByLineIdErrors, type DeleteV1CartsByIdItemsByLineIdResponses, type DeleteV1CartsByIdPromotionsData, type DeleteV1CartsByIdPromotionsErrors, type DeleteV1CartsByIdPromotionsResponses, type GetV1CartsByIdData, type GetV1CartsByIdErrors, type GetV1CartsByIdResponse, type GetV1CartsByIdResponses, type GetV1CollectionsByHandleData, type GetV1CollectionsByHandleErrors, type GetV1CollectionsByHandleProductsData, type GetV1CollectionsByHandleProductsErrors, type GetV1CollectionsByHandleProductsResponse, type GetV1CollectionsByHandleProductsResponses, type GetV1CollectionsByHandleResponse, type GetV1CollectionsByHandleResponses, type GetV1CollectionsData, type GetV1CollectionsResponse, type GetV1CollectionsResponses, type GetV1PoliciesByTypeData, type GetV1PoliciesByTypeErrors, type GetV1PoliciesByTypeResponse, type GetV1PoliciesByTypeResponses, type GetV1PoliciesData, type GetV1PoliciesResponse, type GetV1PoliciesResponses, type GetV1ProductsByIdData, type GetV1ProductsByIdErrors, type GetV1ProductsByIdResponse, type GetV1ProductsByIdResponses, type GetV1ProductsData, type GetV1ProductsResponse, type GetV1ProductsResponses, type GetV1ShippingRatesData, type GetV1ShippingRatesErrors, type GetV1ShippingRatesResponse, type GetV1ShippingRatesResponses, type GetV1ThemeData, type GetV1ThemeResponse, type GetV1ThemeResponses, type Options, type PatchV1OrdersByOrderIdShippingAddressData, type PatchV1OrdersByOrderIdShippingAddressErrors, type PatchV1OrdersByOrderIdShippingAddressResponse, type PatchV1OrdersByOrderIdShippingAddressResponses, type Policy, type PolicyDetailResponse, type PolicyListResponse, type PostV1CartsByIdItemsData, type PostV1CartsByIdItemsErrors, type PostV1CartsByIdItemsResponses, type PostV1CartsByIdPromotionsData, type PostV1CartsByIdPromotionsErrors, type PostV1CartsByIdPromotionsResponse, type PostV1CartsByIdPromotionsResponses, type PostV1CartsData, type PostV1CartsResponse, type PostV1CartsResponses, type PostV1CheckoutStripeData, type PostV1CheckoutStripeResponse, type PostV1CheckoutStripeResponses, type PostV1OrdersByOrderIdCancelData, type PostV1OrdersByOrderIdCancelErrors, type PostV1OrdersByOrderIdCancelResponses, type PostV1OrdersByOrderIdResendConfirmationData, type PostV1OrdersByOrderIdResendConfirmationErrors, type PostV1OrdersByOrderIdResendConfirmationResponse, type PostV1OrdersByOrderIdResendConfirmationResponses, type PostV1OrdersByOrderIdResendInvoiceData, type PostV1OrdersByOrderIdResendInvoiceErrors, type PostV1OrdersByOrderIdResendInvoiceResponse, type PostV1OrdersByOrderIdResendInvoiceResponses, type Product, type ProductListResponse, type ProductMetafield, type ProductVariant, type PutV1CartsByIdItemsByLineIdData, type PutV1CartsByIdItemsByLineIdErrors, type PutV1CartsByIdItemsByLineIdResponses, type RemovePromoCodeInput, Reponse, type ReponseOptions, type ShippingRate, type ShippingRatesResponse, type ThemeResponse, type UpdateCartItemInput, client, deleteV1CartsByIdItemsByLineId, deleteV1CartsByIdPromotions, getV1CartsById, getV1Collections, getV1CollectionsByHandle, getV1CollectionsByHandleProducts, getV1Policies, getV1PoliciesByType, getV1Products, getV1ProductsById, getV1ShippingRates, getV1Theme, patchV1OrdersByOrderIdShippingAddress, postV1Carts, postV1CartsByIdItems, postV1CartsByIdPromotions, postV1CheckoutStripe, postV1OrdersByOrderIdCancel, postV1OrdersByOrderIdResendConfirmation, postV1OrdersByOrderIdResendInvoice, putV1CartsByIdItemsByLineId };

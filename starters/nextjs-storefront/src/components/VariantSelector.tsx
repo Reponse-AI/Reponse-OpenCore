@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { reponse as reponseClient } from "@/lib/reponse";
+import { addToCart } from "@/lib/cart";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface OptionDefinition {
@@ -39,49 +39,6 @@ function formatPrice(amount: number, currency: string) {
     currency: currency || "EUR",
     minimumFractionDigits: 2,
   }).format(amount);
-}
-
-const CART_STORAGE_KEY = "reponse_cart_id";
-
-async function ensureCart(currency: string): Promise<string> {
-  const stored = localStorage.getItem(CART_STORAGE_KEY);
-  if (stored) return stored;
-
-  const res = await reponseClient.cart.create({
-    body: { workspace_id: WORKSPACE_ID, currency },
-  });
-
-  const cartId: string = (res.data as any)?.id ?? (res.data as any)?.data?.id;
-  if (!cartId) throw new Error("Cart API did not return an ID");
-  localStorage.setItem(CART_STORAGE_KEY, cartId);
-  return cartId;
-}
-
-async function addItemToCart(
-  cartId: string,
-  productId: string,
-  variantId: string | undefined,
-  quantity: number,
-  currency: string
-) {
-  const res = await reponseClient.cart.addItem({
-    path: { id: cartId },
-    body: {
-      items: [{ product_id: productId, variant_id: variantId, quantity }],
-    },
-  });
-
-  if (res.error) {
-    // 404 = stale cart ID → clear and retry once
-    if (res.response.status === 404) {
-      localStorage.removeItem(CART_STORAGE_KEY);
-      const newCartId = await ensureCart(currency);
-      return addItemToCart(newCartId, productId, variantId, quantity, currency);
-    }
-    throw new Error(`Failed to add to cart: ${res.response.statusText}`);
-  }
-
-  return res.data;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -165,14 +122,9 @@ export function VariantSelector({
     setError(null);
 
     try {
-      const cartId = await ensureCart(currency);
-      await addItemToCart(
-        cartId,
-        productId,
-        displayVariant?.id,
-        1,
-        currency
-      );
+      // Server Action — the cart ID lives in an httpOnly cookie, the single
+      // source of truth shared with the cart page and the header count.
+      await addToCart(productId, displayVariant?.id, 1);
       setAdded(true);
       // Refresh server state (cart count in header)
       router.refresh();

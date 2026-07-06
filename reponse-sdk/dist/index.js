@@ -23,6 +23,7 @@ __export(index_exports, {
   Reponse: () => Reponse,
   client: () => client,
   deleteV1CartsByIdItemsByLineId: () => deleteV1CartsByIdItemsByLineId,
+  deleteV1CartsByIdPromotions: () => deleteV1CartsByIdPromotions,
   getV1CartsById: () => getV1CartsById,
   getV1Collections: () => getV1Collections,
   getV1CollectionsByHandle: () => getV1CollectionsByHandle,
@@ -36,6 +37,7 @@ __export(index_exports, {
   patchV1OrdersByOrderIdShippingAddress: () => patchV1OrdersByOrderIdShippingAddress,
   postV1Carts: () => postV1Carts,
   postV1CartsByIdItems: () => postV1CartsByIdItems,
+  postV1CartsByIdPromotions: () => postV1CartsByIdPromotions,
   postV1CheckoutStripe: () => postV1CheckoutStripe,
   postV1OrdersByOrderIdCancel: () => postV1OrdersByOrderIdCancel,
   postV1OrdersByOrderIdResendConfirmation: () => postV1OrdersByOrderIdResendConfirmation,
@@ -880,6 +882,24 @@ var putV1CartsByIdItemsByLineId = (options) => (options.client ?? client).put({
     ...options.headers
   }
 });
+var deleteV1CartsByIdPromotions = (options) => (options.client ?? client).delete({
+  security: [{ scheme: "bearer", type: "http" }],
+  url: "/v1/carts/{id}/promotions",
+  ...options,
+  headers: {
+    "Content-Type": "application/json",
+    ...options.headers
+  }
+});
+var postV1CartsByIdPromotions = (options) => (options.client ?? client).post({
+  security: [{ scheme: "bearer", type: "http" }],
+  url: "/v1/carts/{id}/promotions",
+  ...options,
+  headers: {
+    "Content-Type": "application/json",
+    ...options.headers
+  }
+});
 var patchV1OrdersByOrderIdShippingAddress = (options) => (options.client ?? client).patch({
   security: [{ scheme: "bearer", type: "http" }],
   url: "/v1/orders/{orderId}/shipping-address",
@@ -1052,7 +1072,20 @@ var Reponse = class {
      * @param params.query.market_id - Optional market UUID
      * @param params.query.country - Optional ISO country code
      */
-    getShippingRates: async (params) => getV1ShippingRates(params)
+    getShippingRates: async (params) => getV1ShippingRates(params),
+    /**
+     * Apply a promotion code to a cart.
+     * @param params.path.id - Cart UUID
+     * @param params.body.code - Promo code string
+     * @param params.body.market_id - Optional market scope
+     */
+    applyPromoCode: async (params) => postV1CartsByIdPromotions(params),
+    /**
+     * Remove a promotion code from a cart (or all codes if no code specified).
+     * @param params.path.id - Cart UUID
+     * @param params.body.code - Optional code to remove (omit to remove all)
+     */
+    removePromoCode: async (params) => deleteV1CartsByIdPromotions(params)
   };
   // ─── Orders ───────────────────────────────────────────────
   /** Order management: update address, resend emails, cancel. */
@@ -1106,6 +1139,7 @@ var Reponse = class {
   Reponse,
   client,
   deleteV1CartsByIdItemsByLineId,
+  deleteV1CartsByIdPromotions,
   getV1CartsById,
   getV1Collections,
   getV1CollectionsByHandle,
@@ -1119,6 +1153,7 @@ var Reponse = class {
   patchV1OrdersByOrderIdShippingAddress,
   postV1Carts,
   postV1CartsByIdItems,
+  postV1CartsByIdPromotions,
   postV1CheckoutStripe,
   postV1OrdersByOrderIdCancel,
   postV1OrdersByOrderIdResendConfirmation,

@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteV1CartsByIdItemsByLineIdData, DeleteV1CartsByIdItemsByLineIdErrors, DeleteV1CartsByIdItemsByLineIdResponses, GetV1CartsByIdData, GetV1CartsByIdErrors, GetV1CartsByIdResponses, GetV1CollectionsByHandleData, GetV1CollectionsByHandleErrors, GetV1CollectionsByHandleProductsData, GetV1CollectionsByHandleProductsErrors, GetV1CollectionsByHandleProductsResponses, GetV1CollectionsByHandleResponses, GetV1CollectionsData, GetV1CollectionsResponses, GetV1PoliciesByTypeData, GetV1PoliciesByTypeErrors, GetV1PoliciesByTypeResponses, GetV1PoliciesData, GetV1PoliciesResponses, GetV1ProductsByIdData, GetV1ProductsByIdErrors, GetV1ProductsByIdResponses, GetV1ProductsData, GetV1ProductsResponses, GetV1ShippingRatesData, GetV1ShippingRatesErrors, GetV1ShippingRatesResponses, GetV1ThemeData, GetV1ThemeResponses, PatchV1OrdersByOrderIdShippingAddressData, PatchV1OrdersByOrderIdShippingAddressErrors, PatchV1OrdersByOrderIdShippingAddressResponses, PostV1CartsByIdItemsData, PostV1CartsByIdItemsErrors, PostV1CartsByIdItemsResponses, PostV1CartsData, PostV1CartsResponses, PostV1CheckoutStripeData, PostV1CheckoutStripeResponses, PostV1OrdersByOrderIdCancelData, PostV1OrdersByOrderIdCancelErrors, PostV1OrdersByOrderIdCancelResponses, PostV1OrdersByOrderIdResendConfirmationData, PostV1OrdersByOrderIdResendConfirmationErrors, PostV1OrdersByOrderIdResendConfirmationResponses, PostV1OrdersByOrderIdResendInvoiceData, PostV1OrdersByOrderIdResendInvoiceErrors, PostV1OrdersByOrderIdResendInvoiceResponses, PutV1CartsByIdItemsByLineIdData, PutV1CartsByIdItemsByLineIdErrors, PutV1CartsByIdItemsByLineIdResponses } from './types.gen';
+import type { DeleteV1CartsByIdItemsByLineIdData, DeleteV1CartsByIdItemsByLineIdErrors, DeleteV1CartsByIdItemsByLineIdResponses, DeleteV1CartsByIdPromotionsData, DeleteV1CartsByIdPromotionsErrors, DeleteV1CartsByIdPromotionsResponses, GetV1CartsByIdData, GetV1CartsByIdErrors, GetV1CartsByIdResponses, GetV1CollectionsByHandleData, GetV1CollectionsByHandleErrors, GetV1CollectionsByHandleProductsData, GetV1CollectionsByHandleProductsErrors, GetV1CollectionsByHandleProductsResponses, GetV1CollectionsByHandleResponses, GetV1CollectionsData, GetV1CollectionsResponses, GetV1PoliciesByTypeData, GetV1PoliciesByTypeErrors, GetV1PoliciesByTypeResponses, GetV1PoliciesData, GetV1PoliciesResponses, GetV1ProductsByIdData, GetV1ProductsByIdErrors, GetV1ProductsByIdResponses, GetV1ProductsData, GetV1ProductsResponses, GetV1ShippingRatesData, GetV1ShippingRatesErrors, GetV1ShippingRatesResponses, GetV1ThemeData, GetV1ThemeResponses, PatchV1OrdersByOrderIdShippingAddressData, PatchV1OrdersByOrderIdShippingAddressErrors, PatchV1OrdersByOrderIdShippingAddressResponses, PostV1CartsByIdItemsData, PostV1CartsByIdItemsErrors, PostV1CartsByIdItemsResponses, PostV1CartsByIdPromotionsData, PostV1CartsByIdPromotionsErrors, PostV1CartsByIdPromotionsResponses, PostV1CartsData, PostV1CartsResponses, PostV1CheckoutStripeData, PostV1CheckoutStripeResponses, PostV1OrdersByOrderIdCancelData, PostV1OrdersByOrderIdCancelErrors, PostV1OrdersByOrderIdCancelResponses, PostV1OrdersByOrderIdResendConfirmationData, PostV1OrdersByOrderIdResendConfirmationErrors, PostV1OrdersByOrderIdResendConfirmationResponses, PostV1OrdersByOrderIdResendInvoiceData, PostV1OrdersByOrderIdResendInvoiceErrors, PostV1OrdersByOrderIdResendInvoiceResponses, PutV1CartsByIdItemsByLineIdData, PutV1CartsByIdItemsByLineIdErrors, PutV1CartsByIdItemsByLineIdResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -100,6 +100,36 @@ export const deleteV1CartsByIdItemsByLineId = <ThrowOnError extends boolean = fa
 export const putV1CartsByIdItemsByLineId = <ThrowOnError extends boolean = false>(options: Options<PutV1CartsByIdItemsByLineIdData, ThrowOnError>) => (options.client ?? client).put<PutV1CartsByIdItemsByLineIdResponses, PutV1CartsByIdItemsByLineIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/carts/{id}/items/{lineId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Remove promo code
+ *
+ * Remove a promotion code from a cart (or all codes if no code specified)
+ */
+export const deleteV1CartsByIdPromotions = <ThrowOnError extends boolean = false>(options: Options<DeleteV1CartsByIdPromotionsData, ThrowOnError>) => (options.client ?? client).delete<DeleteV1CartsByIdPromotionsResponses, DeleteV1CartsByIdPromotionsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/carts/{id}/promotions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Apply promo code
+ *
+ * Apply a promotion code to a cart
+ */
+export const postV1CartsByIdPromotions = <ThrowOnError extends boolean = false>(options: Options<PostV1CartsByIdPromotionsData, ThrowOnError>) => (options.client ?? client).post<PostV1CartsByIdPromotionsResponses, PostV1CartsByIdPromotionsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/carts/{id}/promotions',
     ...options,
     headers: {
         'Content-Type': 'application/json',

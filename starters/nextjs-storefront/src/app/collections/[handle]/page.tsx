@@ -18,9 +18,12 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
       const siteUrl = process.env.SITE_URL || "";
       const canonicalUrl = `${siteUrl}/collections/${handle}`;
 
+      // The API returns seo_* fields but the SDK's Collection type doesn't
+      // declare them yet (OpenAPI spec lags behind)
+      const seo = collection as { seo_title?: string | null; seo_description?: string | null };
       return {
-        title: collection.seo_title || collection.title,
-        description: collection.seo_description || collection.description,
+        title: seo.seo_title || collection.title,
+        description: seo.seo_description || collection.description,
         alternates: { canonical: canonicalUrl },
       };
     }

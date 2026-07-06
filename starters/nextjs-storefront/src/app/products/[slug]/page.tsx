@@ -180,7 +180,6 @@ export default async function ProductPage({
             {/* Variant Selector (client component — handles price, options, add-to-cart) */}
             <VariantSelector
               productId={product.id}
-              productSlug={slug}
               variants={hasOnlyDefaultVariant ? [] : variants}
               optionDefinitions={hasOnlyDefaultVariant ? [] : optionDefinitions}
               currency={currency}
