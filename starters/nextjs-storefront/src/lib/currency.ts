@@ -27,7 +27,7 @@ export function formatMoney(amount: string | number, currencyCode: string | null
 
   if (isNaN(numericValue)) return String(amount);
 
-  const currency = currencyCode || "USD";
+  const currency = currencyCode || "EUR";
 
   return new Intl.NumberFormat(locale, {
     style: 'currency',
