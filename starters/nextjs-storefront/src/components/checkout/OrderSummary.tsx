@@ -2,9 +2,15 @@
 
 import { useCheckout } from './CheckoutProvider';
 import { DiscountInput } from './DiscountInput';
+import { GiftCardInput } from './GiftCardInput';
+import { LoyaltyRedemption } from './LoyaltyRedemption';
 import { formatPrice } from '@/lib/currency';
 
-export function OrderSummary() {
+interface OrderSummaryProps {
+  contactId?: string;
+}
+
+export function OrderSummary({ contactId }: OrderSummaryProps) {
   const {
     items,
     subtotal,
@@ -135,6 +141,18 @@ export function OrderSummary() {
 
       {/* Discount input */}
       <DiscountInput />
+
+      {/* Gift card */}
+      <div style={{ marginTop: '12px' }}>
+        <GiftCardInput currency={currency} />
+      </div>
+
+      {/* Loyalty points redemption */}
+      {contactId && (
+        <div style={{ marginTop: '12px' }}>
+          <LoyaltyRedemption contactId={contactId} currency={currency} />
+        </div>
+      )}
 
       <hr style={dividerStyle} />
 

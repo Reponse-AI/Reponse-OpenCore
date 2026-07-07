@@ -83,7 +83,7 @@ const matchedVariant = variants.find(v =>
 // Add to app/layout.tsx for conversational commerce
 <Script
   src="https://reponse.ai/assets/sdk/reponse-widget.min.js"
-  data-workspace-id={process.env.NEXT_PUBLIC_WORKSPACE_ID}
+  data-reponse-workspace-id={process.env.NEXT_PUBLIC_WORKSPACE_ID}
   strategy="lazyOnload"
 />
 ```

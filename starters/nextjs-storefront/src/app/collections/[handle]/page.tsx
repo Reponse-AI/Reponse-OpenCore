@@ -7,65 +7,102 @@ import { addToCart } from "@/lib/cart";
 import { revalidatePath } from "next/cache";
 import { formatPrice } from "@/lib/currency";
 
-export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }) {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface CollectionSeo {
+  seo_title?: string | null;
+  seo_description?: string | null;
+}
+
+interface CollectionData {
+  id: string;
+  handle: string;
+  title: string;
+  description?: string | null;
+}
+
+// ─── Metadata ─────────────────────────────────────────────────────────────────
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ handle: string }>;
+}) {
   const { handle } = await params;
-  
+
   try {
     const collectionsRes = await reponse.catalog.listCollections();
-    const collection = collectionsRes.data?.data?.find((c: any) => c.handle === handle);
-    
+    const collections = (collectionsRes.data?.data ?? []) as unknown as Array<
+      { handle: string; title: string; description?: string | null } & CollectionSeo
+    >;
+    const collection = collections.find((c) => c.handle === handle);
+
     if (collection) {
       const siteUrl = process.env.SITE_URL || "";
       const canonicalUrl = `${siteUrl}/collections/${handle}`;
 
-      // The API returns seo_* fields but the SDK's Collection type doesn't
-      // declare them yet (OpenAPI spec lags behind)
-      const seo = collection as { seo_title?: string | null; seo_description?: string | null };
       return {
-        title: seo.seo_title || collection.title,
-        description: seo.seo_description || collection.description,
+        title: collection.seo_title || collection.title,
+        description: collection.seo_description || collection.description,
         alternates: { canonical: canonicalUrl },
       };
     }
-  } catch (e) {
+  } catch {
     // Ignore
   }
-  
+
   return { title: "Collection Not Found" };
 }
 
-export default async function CollectionPage({ params }: { params: Promise<{ handle: string }> }) {
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default async function CollectionPage({
+  params,
+}: {
+  params: Promise<{ handle: string }>;
+}) {
   const { handle } = await params;
-  
-  let collection: any | null = null;
-  let products: any[] = [];
+
+  let collection: CollectionData | null = null;
+  let products: Array<Record<string, unknown>> = [];
   let error: string | null = null;
 
   try {
     // Fetch collection info
     const collectionsRes = await reponse.catalog.listCollections();
-    collection = collectionsRes.data?.data?.find((c: any) => c.handle === handle) || null;
+    const allCollections = (collectionsRes.data?.data ?? []) as unknown as Array<
+      CollectionData & Record<string, unknown>
+    >;
+    collection =
+      allCollections.find((c) => c?.handle === handle) ?? null;
 
     if (collection) {
-      const apiUrl = process.env.REPONSE_API_URL || "http://localhost:3000/api";
+      const apiUrl =
+        process.env.REPONSE_API_URL || "http://localhost:3000/api";
       const apiKey = process.env.REPONSE_API_KEY || "";
       const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
 
       const productsRes = await fetch(
         `${apiUrl}/api/v1/collections/${handle}/products?workspace_id=${workspaceId}&limit=50`,
-        { headers: { "x-api-key": apiKey } }
+        { headers: { "x-api-key": apiKey } },
       );
 
       if (productsRes.ok) {
-        const productsData = await productsRes.json();
+        const productsData = (await productsRes.json()) as {
+          products?: Array<Record<string, unknown>>;
+        };
         products = productsData.products || [];
       } else if (productsRes.status !== 404) {
-        throw new Error(`Failed to fetch collection products: ${productsRes.statusText}`);
+        throw new Error(
+          `Failed to fetch collection products: ${productsRes.statusText}`,
+        );
       }
     }
-  } catch (err: any) {
-    console.error("Failed to fetch collection:", err.message);
-    error = err.message;
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : "Unknown error";
+    console.error("Failed to fetch collection:", message);
+    error = message;
   }
 
   if (!collection && !error) {
@@ -85,12 +122,14 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: products.length,
-      itemListElement: products.map((product: Record<string, unknown>, index: number) => ({
+      itemListElement: products.map((product, index) => ({
         "@type": "ListItem",
         position: index + 1,
         url: `${siteUrl}/products/${(product.slug as string) || (product.id as string)}`,
         name: product.title as string,
-        image: Array.isArray(product.images) ? product.images[0] : undefined,
+        image: Array.isArray(product.images)
+          ? product.images[0]
+          : undefined,
       })),
     },
   };
@@ -100,8 +139,18 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl || "/" },
-      { "@type": "ListItem", position: 2, name: "Collections", item: `${siteUrl}/collections` },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteUrl || "/",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Collections",
+        item: `${siteUrl}/collections`,
+      },
       { "@type": "ListItem", position: 3, name: collectionTitle },
     ],
   };
@@ -110,22 +159,32 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(collectionJsonLd),
+        }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd),
+        }}
       />
       <Header />
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-8 py-12">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-          <Link href="/" className="hover:text-gray-700 transition-colors">
+          <Link
+            href="/"
+            className="hover:text-gray-700 transition-colors"
+          >
             Home
           </Link>
           <span>/</span>
-          <Link href="/collections" className="hover:text-gray-700 transition-colors">
+          <Link
+            href="/collections"
+            className="hover:text-gray-700 transition-colors"
+          >
             Collections
           </Link>
           <span>/</span>
@@ -135,9 +194,13 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
         </nav>
 
         <div className="mb-10 text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm">
-          <h1 className="text-4xl font-extrabold tracking-tight mb-4">{collectionTitle}</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight mb-4">
+            {collectionTitle}
+          </h1>
           {collection?.description && (
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">{collection.description}</p>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {collection.description}
+            </p>
           )}
         </div>
 
@@ -147,62 +210,139 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {products.map((product: any) => (
-              <div key={product.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col relative">
-                <Link href={`/products/${product.slug || product.id}`} className="absolute inset-0 z-0">
-                  <span className="sr-only">View {product.title}</span>
-                </Link>
-                
-                <div className="aspect-square bg-gray-100 relative flex items-center justify-center text-gray-400 overflow-hidden">
-                  {product.images?.[0] ? (
-                    <Image src={product.images[0]} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <span>No image</span>
-                  )}
-                  {product.compare_at_price && product.compare_at_price > product.price && (
-                    <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                      Sale
-                    </span>
-                  )}
-                  {!product.in_stock && (
-                    <span className="absolute top-3 right-3 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded">
-                      Out of Stock
-                    </span>
-                  )}
-                </div>
+            {products.map((product) => {
+              const id = product.id as string;
+              const title = product.title as string;
+              const slug = (product.slug as string) || id;
+              const price = product.price as number;
+              const compareAtPrice = product.compare_at_price as
+                | number
+                | undefined;
+              const currency =
+                (product.currency as string) || "EUR";
+              const inStock = product.in_stock as boolean;
+              const images = product.images as
+                | string[]
+                | undefined;
+              const variants = product.variants as
+                | Array<{ id: string }>
+                | undefined;
 
-                <div className="p-5 flex flex-col flex-grow z-10 pointer-events-none">
-                  <h3 className="font-semibold text-lg mb-1">{product.title}</h3>
-                  <div className="mt-auto flex items-center justify-between pt-4">
-                    <div className="flex flex-col">
-                      {product.compare_at_price && product.compare_at_price > product.price ? (
-                        <>
-                          <span className="text-sm text-gray-400 line-through">{formatPrice(product.compare_at_price, product.currency)}</span>
-                          <span className="font-bold text-lg text-red-600">{formatPrice(product.price, product.currency)}</span>
-                        </>
+              const isOnSale =
+                compareAtPrice != null && compareAtPrice > price;
+
+              return (
+                <div
+                  key={id}
+                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col"
+                >
+                  {/* Image — clickable */}
+                  <Link
+                    href={`/products/${slug}`}
+                    className="block relative"
+                  >
+                    <div className="aspect-square bg-gray-100 relative flex items-center justify-center text-gray-400 overflow-hidden">
+                      {images?.[0] ? (
+                        <Image
+                          src={images[0]}
+                          alt={title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        />
                       ) : (
-                        <span className="font-bold text-lg">{formatPrice(product.price, product.currency)}</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="40"
+                          height="40"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1"
+                        >
+                          <rect
+                            x="3"
+                            y="3"
+                            width="18"
+                            height="18"
+                            rx="2"
+                          />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                      )}
+                      {isOnSale && (
+                        <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                          Sale
+                        </span>
+                      )}
+                      {!inStock && (
+                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                          <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                            Out of Stock
+                          </span>
+                        </div>
                       )}
                     </div>
-                    
-                    <form action={async () => {
-                      "use server";
-                      if (!product.in_stock) return;
-                      const variantId = product.variants?.[0]?.id;
-                      await addToCart(product.id, variantId, 1);
-                      revalidatePath(`/collections/${handle}`);
-                    }} className="pointer-events-auto">
-                      <button 
-                        disabled={!product.in_stock}
-                        className="px-4 py-2 bg-black text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  </Link>
+
+                  {/* Info */}
+                  <div className="p-5 flex flex-col flex-grow">
+                    {/* Title — clickable */}
+                    <Link
+                      href={`/products/${slug}`}
+                      className="hover:underline underline-offset-2"
+                    >
+                      <h3 className="font-semibold text-lg mb-1">
+                        {title}
+                      </h3>
+                    </Link>
+
+                    <div className="mt-auto flex items-center justify-between pt-4">
+                      <div className="flex flex-col">
+                        {isOnSale ? (
+                          <>
+                            <span className="text-sm text-gray-400 line-through">
+                              {formatPrice(
+                                compareAtPrice,
+                                currency,
+                              )}
+                            </span>
+                            <span className="font-bold text-lg text-red-600">
+                              {formatPrice(price, currency)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="font-bold text-lg">
+                            {formatPrice(price, currency)}
+                          </span>
+                        )}
+                      </div>
+
+                      <form
+                        action={async () => {
+                          "use server";
+                          if (!inStock) return;
+                          const variantId = variants?.[0]?.id;
+                          await addToCart(id, variantId, 1);
+                          revalidatePath(
+                            `/collections/${handle}`,
+                          );
+                        }}
                       >
-                        {product.in_stock ? 'Add to Cart' : 'Sold Out'}
-                      </button>
-                    </form>
+                        <button
+                          disabled={!inStock}
+                          type="submit"
+                          className="px-4 py-2 bg-black text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {inStock ? "Add to Cart" : "Sold Out"}
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {products.length === 0 && (
               <div className="col-span-full py-20 text-center text-gray-500">
