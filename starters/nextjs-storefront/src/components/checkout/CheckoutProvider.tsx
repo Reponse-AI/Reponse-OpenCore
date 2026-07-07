@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 interface RawCartItem {
   id: string;
@@ -131,8 +131,8 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
     async function init() {
       try {
         const [cartRes, themeRes] = await Promise.all([
-          fetch(`${apiUrl}/api/v1/carts/${cartId}`, { headers: { 'Authorization': `Bearer ${apiKey}` } }),
-          fetch(`${apiUrl}/api/v1/theme`, { headers: { 'Authorization': `Bearer ${apiKey}` } }),
+          fetch(`${apiUrl}/v1/carts/${cartId}`, { headers: { 'Authorization': `Bearer ${apiKey}` } }),
+          fetch(`${apiUrl}/v1/theme`, { headers: { 'Authorization': `Bearer ${apiKey}` } }),
         ]);
 
         if (!cartRes.ok) throw new Error('Failed to load cart');
@@ -217,7 +217,7 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
       const s = stateRef.current;
-      const res = await fetch(`${apiUrl}/api/v1/discounts/validate`, {
+      const res = await fetch(`${apiUrl}/v1/discounts/validate`, {
         method: 'POST',
         headers: headersRef.current,
         body: JSON.stringify({
@@ -266,7 +266,7 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
       const s = stateRef.current;
-      const res = await fetch(`${apiUrl}/api/v1/checkout/intent`, {
+      const res = await fetch(`${apiUrl}/v1/checkout/intent`, {
         method: 'POST',
         headers: headersRef.current,
         body: JSON.stringify({

@@ -1,11 +1,11 @@
+import { Header } from "@/components/Header";
+import { addToCart } from "@/lib/cart";
+import { formatPrice } from "@/lib/currency";
+import { reponse } from "@/lib/reponse";
+import { revalidatePath } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/Header";
-import { reponse } from "@/lib/reponse";
-import { addToCart } from "@/lib/cart";
-import { revalidatePath } from "next/cache";
-import { formatPrice } from "@/lib/currency";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -83,7 +83,7 @@ export default async function CollectionPage({
       const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
 
       const productsRes = await fetch(
-        `${apiUrl}/api/v1/collections/${handle}/products?workspace_id=${workspaceId}&limit=50`,
+        `${apiUrl}/v1/collections/${handle}/products?workspace_id=${workspaceId}&limit=50`,
         { headers: { "x-api-key": apiKey } },
       );
 

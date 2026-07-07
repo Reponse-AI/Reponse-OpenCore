@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useCheckout } from './CheckoutProvider';
 import { formatPrice } from '@/lib/currency';
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { FormEvent, useEffect, useState } from 'react';
+import { useCheckout } from './CheckoutProvider';
 
 // ─── Inner Payment Form ──────────────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ function PaymentForm() {
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
         // Confirm the order on our backend
-        await fetch(`${apiUrl}/api/v1/orders/confirm`, {
+        await fetch(`${apiUrl}/v1/orders/confirm`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, FormEvent, useCallback } from 'react';
-import { useCheckout, ShippingRate } from './CheckoutProvider';
 import { formatPrice } from '@/lib/currency';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { ShippingRate, useCheckout } from './CheckoutProvider';
 
 const COUNTRIES = [
   { code: 'FR', name: 'France' },
@@ -41,7 +41,7 @@ export function ShippingStep() {
     try {
       const marketParam = marketId ? `&market_id=${marketId}` : '';
       const res = await fetch(
-        `${apiUrl}/api/v1/shipping/rates?country=${country}&cart_id=${cartId}${marketParam}`,
+        `${apiUrl}/v1/shipping/rates?country=${country}&cart_id=${cartId}${marketParam}`,
         { headers: { 'Authorization': `Bearer ${apiKey}` } }
       );
       if (!res.ok) throw new Error('Failed to fetch shipping rates');

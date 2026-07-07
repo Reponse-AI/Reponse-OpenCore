@@ -16,7 +16,7 @@ interface PolicyData {
 
 async function fetchPolicy(type: string): Promise<PolicyData | null> {
   try {
-    const res = await fetch(`${API_URL}/api/v1/policies/${type}`, {
+    const res = await fetch(`${API_URL}/v1/policies/${type}`, {
       headers: { Authorization: `Bearer ${API_KEY}` },
       next: { revalidate: 300 },
     });
