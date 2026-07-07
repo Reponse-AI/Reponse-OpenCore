@@ -3,6 +3,7 @@ import { getContactId } from "@/lib/auth";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
 import { getLoyaltyProgram, getLoyaltyBalance } from "@/lib/loyalty";
 import { formatPrice } from "@/lib/currency";
+import { RedeemPoints } from "@/components/RedeemPoints";
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
 
@@ -252,6 +253,17 @@ export default async function AccountRewardsPage() {
               </div>
             </div>
           )}
+
+          {/* Redeem Points */}
+          <div style={{ marginBottom: "24px" }}>
+            <RedeemPoints
+              contactId={contactId}
+              pointsBalance={balance.points_balance}
+              pointsName={program.points_name}
+              pointsCurrencyRatio={program.points_currency_ratio}
+              currency={currency}
+            />
+          </div>
 
           {/* How Points Work */}
           <div style={cardStyle}>

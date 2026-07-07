@@ -9,9 +9,21 @@ import { formatPrice } from "@/lib/currency";
 
 export async function generateMetadata() {
   const config = await getStoreConfig();
+  const title = `Rewards Program – ${config["--rp-brand-name"]}`;
+  const description = "Earn points, unlock perks, and enjoy exclusive rewards every time you shop with us.";
   return {
-    title: `Rewards Program – ${config["--rp-brand-name"]}`,
-    description: "Earn points, unlock perks, and enjoy exclusive rewards every time you shop with us.",
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website" as const,
+    },
+    twitter: {
+      card: "summary" as const,
+      title,
+      description,
+    },
   };
 }
 

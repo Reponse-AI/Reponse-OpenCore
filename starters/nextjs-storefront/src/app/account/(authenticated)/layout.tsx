@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { AccountNav } from "@/components/AccountNav";
 import { getSessionToken } from "@/lib/auth";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
 import { getLoyaltyProgram } from "@/lib/loyalty";
@@ -198,18 +199,7 @@ export default async function AccountAuthenticatedLayout({
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <aside className="w-full md:w-56 shrink-0">
-            <nav className="bg-white rounded-2xl border border-gray-100 shadow-sm p-2 space-y-0.5">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                >
-                  <span className="text-gray-400">{item.icon}</span>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+              <AccountNav items={navItems} />
           </aside>
 
           {/* Content */}

@@ -1,7 +1,8 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getContactId, getSessionToken } from "@/lib/auth";
 import { formatPrice } from "@/lib/currency";
+import { getStoreConfig, isModuleActive } from "@/lib/config";
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,9 @@ function maskCode(code: string): string {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function AccountGiftCardsPage() {
+  const config = await getStoreConfig();
+  if (!isModuleActive(config, 'gift_cards')) notFound();
+
   const contactId = await getContactId();
   if (!contactId) {
     redirect("/account/login");

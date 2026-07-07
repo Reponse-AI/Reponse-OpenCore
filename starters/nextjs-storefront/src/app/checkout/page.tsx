@@ -56,9 +56,10 @@ export default async function CheckoutPage() {
     } else {
       error = "Checkout session URL not returned from API.";
     }
-  } catch (err: any) {
-    console.error("Checkout creation failed:", err.message);
-    error = err.message;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Checkout creation failed';
+    console.error('Checkout creation failed:', message);
+    error = message;
   }
 
   if (sessionUrl) {

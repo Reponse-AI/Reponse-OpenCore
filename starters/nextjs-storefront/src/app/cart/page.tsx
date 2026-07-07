@@ -7,24 +7,54 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { PromoCodeForm } from "@/components/PromoCodeForm";
 
+/** Cart items enriched by the API with product data. */
+interface EnrichedCartItem {
+  id: string;
+  product_id: string;
+  variant_id?: string;
+  quantity: number;
+  price: number;
+  product?: {
+    title?: string;
+    handle?: string;
+    images?: string[];
+  };
+}
+
+/** Discount entry attached to the enriched cart response. */
+interface CartDiscount {
+  code: string;
+  savings: number;
+}
+
+/** The GET /v1/carts/:id response includes fields beyond the base SDK Cart type. */
+interface EnrichedCart {
+  items: EnrichedCartItem[];
+  subtotal: number;
+  currency: string;
+  applied_discounts: CartDiscount[];
+  automatic_discounts: CartDiscount[];
+  discount_total: number;
+  adjusted_total: number;
+}
+
 export const metadata = {
   title: "Your Cart | Reponse Store",
 };
 
 export default async function CartPage() {
   const cart = await getCart();
-  const items: any[] = (cart as any)?.items || [];
+  const enriched = (cart ?? {}) as Partial<EnrichedCart>;
+  const items: EnrichedCartItem[] = enriched.items ?? [];
   const isEmpty = items.length === 0;
-  // Non-null alias — safe because in the non-empty branch, cart is always defined
-  const c = cart as NonNullable<typeof cart>;
 
   // Discount data from the enriched GET /v1/carts/:id response
-  const appliedDiscounts: { code: string; savings: number; description: string | null }[] =
-    (c as any)?.applied_discounts || [];
-  const automaticDiscounts: { code: string; type: string; value: number; savings: number }[] =
-    (c as any)?.automatic_discounts || [];
-  const discountTotal: number = (c as any)?.discount_total || 0;
-  const adjustedTotal: number = (c as any)?.adjusted_total ?? (c as any)?.subtotal ?? 0;
+  const appliedDiscounts: CartDiscount[] = enriched.applied_discounts ?? [];
+  const automaticDiscounts: CartDiscount[] = enriched.automatic_discounts ?? [];
+  const discountTotal = enriched.discount_total ?? 0;
+  const adjustedTotal = enriched.adjusted_total ?? enriched.subtotal ?? 0;
+  const subtotal = enriched.subtotal ?? 0;
+  const currency = enriched.currency ?? "EUR";
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
@@ -45,7 +75,7 @@ export default async function CartPage() {
           <div className="flex flex-col lg:flex-row gap-12">
             {/* Items List */}
             <div className="flex-grow flex flex-col gap-6">
-              {items.map((item: any) => (
+              {items.map((item) => (
                 <div key={item.id} className="flex gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                   <div className="w-24 h-24 bg-gray-100 rounded-xl relative overflow-hidden flex-shrink-0">
                     {item.product?.images?.[0] ? (
@@ -60,7 +90,7 @@ export default async function CartPage() {
                       <Link href={`/products/${item.product?.handle || item.product_id}`} className="font-semibold text-lg hover:underline">
                         {item.product?.title || `Product #${(item.product_id || "").slice(0, 8)}`}
                       </Link>
-                      <span className="font-bold">{formatPrice(item.price, c.currency)}</span>
+                      <span className="font-bold">{formatPrice(item.price, currency)}</span>
                     </div>
                     
                     <div className="mt-auto flex items-center justify-between">
@@ -105,7 +135,7 @@ export default async function CartPage() {
                 
                 <div className="flex justify-between mb-4 text-gray-600">
                   <span>Subtotal</span>
-                  <span>{formatPrice(c.subtotal, c.currency)}</span>
+                  <span>{formatPrice(subtotal, currency)}</span>
                 </div>
 
                 {/* Applied promo codes */}
@@ -118,7 +148,7 @@ export default async function CartPage() {
                             {d.code}
                           </span>
                           <span className="text-sm text-emerald-700 font-medium">
-                            −{formatPrice(d.savings, c.currency)}
+                            −{formatPrice(d.savings, currency)}
                           </span>
                         </div>
                         <form action={async () => {
@@ -146,7 +176,7 @@ export default async function CartPage() {
                       <span className="text-xs bg-gray-100 rounded px-1.5 py-0.5 font-medium">{d.code}</span>
                       auto
                     </span>
-                    <span className="text-emerald-600 font-medium">−{formatPrice(d.savings, c.currency)}</span>
+                    <span className="text-emerald-600 font-medium">−{formatPrice(d.savings, currency)}</span>
                   </div>
                 ))}
 
@@ -154,7 +184,7 @@ export default async function CartPage() {
                 {discountTotal > 0 && (
                   <div className="flex justify-between mb-4 text-emerald-600 font-medium">
                     <span>Discount</span>
-                    <span>−{formatPrice(discountTotal, c.currency)}</span>
+                    <span>−{formatPrice(discountTotal, currency)}</span>
                   </div>
                 )}
                 
@@ -168,7 +198,7 @@ export default async function CartPage() {
                 
                 <div className="border-t border-gray-100 pt-6 mb-8 flex justify-between items-center">
                   <span className="font-bold text-lg">Total</span>
-                  <span className="font-extrabold text-2xl">{formatPrice(adjustedTotal, c.currency)}</span>
+                  <span className="font-extrabold text-2xl">{formatPrice(adjustedTotal, currency)}</span>
                 </div>
 
                 <form action={async () => {

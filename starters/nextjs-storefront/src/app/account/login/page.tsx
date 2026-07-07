@@ -27,6 +27,8 @@ export default function LoginPage() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const codeInputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -36,6 +38,12 @@ export default function LoginPage() {
       codeInputsRef.current[0]?.focus();
     }
   }, [step]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   const handleEmailSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -58,6 +66,8 @@ export default function LoginPage() {
         }
 
         setStep("code");
+        setResendCooldown(60);
+        setResendSuccess(false);
       } catch {
         setError("Something went wrong. Please try again.");
       } finally {
@@ -66,6 +76,28 @@ export default function LoginPage() {
     },
     [email]
   );
+
+  const handleResendCode = useCallback(async () => {
+    setResendSuccess(false);
+    setError(null);
+    try {
+      const { apiUrl, workspaceId } = getEnv();
+      const res = await fetch(`${apiUrl.replace('/api', '')}/api/auth/b2c/otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspaceId, email }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as Record<string, string>;
+        setError(data.error || 'Failed to resend code');
+        return;
+      }
+      setResendSuccess(true);
+      setResendCooldown(60);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    }
+  }, [email]);
 
   const handleCodeChange = useCallback(
     (index: number, value: string) => {
@@ -297,6 +329,23 @@ export default function LoginPage() {
                     "Verify"
                   )}
                 </button>
+
+              {/* Resend code */}
+              <div className="text-center space-y-1">
+                {resendSuccess && (
+                  <p className="text-sm text-emerald-600 font-medium">Code resent!</p>
+                )}
+                <button
+                  type="button"
+                  disabled={resendCooldown > 0}
+                  onClick={handleResendCode}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resendCooldown > 0
+                    ? `Resend code in ${resendCooldown}s`
+                    : "Didn't receive a code? Resend"}
+                </button>
+              </div>
 
                 <div className="text-center">
                   <button

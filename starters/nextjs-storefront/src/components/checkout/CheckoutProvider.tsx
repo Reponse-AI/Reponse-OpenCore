@@ -2,6 +2,19 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 
+interface RawCartItem {
+  id: string;
+  title?: string;
+  product_title?: string;
+  variant_title?: string;
+  quantity?: number;
+  unit_price?: number;
+  price?: number;
+  line_price?: number;
+  image_url?: string;
+  image?: string;
+}
+
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 export interface ShippingRate {
@@ -139,7 +152,7 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
 
         if (cancelled) return;
 
-        const items = (cart.items || []).map((item: any) => ({
+        const items = (cart.items || []).map((item: RawCartItem) => ({
           id: item.id,
           title: item.title || item.product_title || '',
           variant_title: item.variant_title || '',
@@ -149,7 +162,7 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
           image_url: item.image_url || item.image || '',
         }));
 
-        const subtotal = items.reduce((acc: number, i: any) => acc + i.line_price, 0);
+        const subtotal = items.reduce((acc: number, i: CheckoutState['items'][number]) => acc + i.line_price, 0);
 
         recalculate({
           items,

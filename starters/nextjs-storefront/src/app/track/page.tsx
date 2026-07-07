@@ -6,6 +6,16 @@ import { TrackOrderForm } from "@/components/TrackOrderForm";
 export const metadata: Metadata = {
   title: "Track Your Order",
   description: "Enter your email and order number to track your order status.",
+  openGraph: {
+    title: "Track Your Order",
+    description: "Enter your email and order number to track your order status.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Track Your Order",
+    description: "Enter your email and order number to track your order status.",
+  },
 };
 
 export default function TrackPage() {

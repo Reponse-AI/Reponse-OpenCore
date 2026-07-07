@@ -51,12 +51,70 @@ export default async function RootLayout({
   const locale = await resolveLocale();
   const dict = await getDictionary(locale);
 
+  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
+  const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+
+  // ─── JSON-LD: Organization ─────────────────────────────────────────────────
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: config["--rp-brand-name"] || "Store",
+    url: siteUrl,
+    ...(config["--rp-brand-logo"] ? { logo: config["--rp-brand-logo"] } : {}),
+  };
+
+  // ─── JSON-LD: WebSite (enables Google sitelinks search box) ────────────────
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: config["--rp-brand-name"] || "Store",
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteUrl}/products?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       style={styleVars}
     >
+      <head>
+        {/* JSON-LD structured data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+
+        {/* Product feed discovery links */}
+        {workspaceId && (
+          <link
+            rel="alternate"
+            type="application/json"
+            title="Product Feed (JSON)"
+            href={`${apiUrl}/v1/feed?workspace_id=${workspaceId}`}
+          />
+        )}
+        {workspaceId && (
+          <link
+            rel="alternate"
+            type="text/csv"
+            title="Product Feed (CSV)"
+            href={`${apiUrl}/v1/feed/csv?workspace_id=${workspaceId}`}
+          />
+        )}
+      </head>
       <body className="min-h-full flex flex-col">
         {/* Runtime env injection — allows client components to read server-only vars */}
         <script

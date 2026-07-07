@@ -78,3 +78,34 @@ export async function getAuthenticatedContact(): Promise<AuthenticatedContact | 
     return null;
   }
 }
+
+// ─── Profile Update ───────────────────────────────────────────────────────────
+
+export interface ProfileUpdatePayload {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+}
+
+export async function updateProfile(
+  updates: ProfileUpdatePayload
+): Promise<boolean> {
+  const token = await getSessionToken();
+  if (!token) return false;
+
+  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
+
+  try {
+    const res = await fetch(`${apiUrl}/v1/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updates),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

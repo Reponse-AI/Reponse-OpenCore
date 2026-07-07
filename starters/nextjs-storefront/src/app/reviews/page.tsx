@@ -9,6 +9,16 @@ import { getStoreConfig, isModuleActive } from "@/lib/config";
 export const metadata: Metadata = {
   title: "Customer Reviews",
   description: "Read what our customers have to say about their experience.",
+  openGraph: {
+    title: "Customer Reviews",
+    description: "Read what our customers have to say about their experience.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Customer Reviews",
+    description: "Read what our customers have to say about their experience.",
+  },
 };
 
 export default async function ReviewsPage() {

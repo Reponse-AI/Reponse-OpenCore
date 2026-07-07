@@ -4,18 +4,20 @@ import { reponse } from "@/lib/reponse";
 import { addToCart } from "@/lib/cart";
 import { Header } from "@/components/Header";
 import { revalidatePath } from "next/cache";
+import type { Product } from '@reponseai/sdk';
 import { formatPrice } from "@/lib/currency";
 
 export default async function Home() {
-  let products: any[] = [];
+  let products: Product[] = [];
   let error: string | null = null;
 
   try {
     const response = await reponse.catalog.listProducts({ query: { limit: 12 } });
     products = response.data?.data || [];
-  } catch (err: any) {
-    console.error("Failed to fetch products:", err.message);
-    error = err.message;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Failed to fetch products:', message);
+    error = message;
   }
 
   return (
@@ -38,7 +40,7 @@ export default async function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product: any) => {
+            {products.map((product) => {
               const currency = product.currency || "EUR";
               const isOnSale = product.compare_at_price && product.compare_at_price > product.price;
 
@@ -64,7 +66,7 @@ export default async function Home() {
                       )}
                       {isOnSale && (
                         <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                          -{Math.round((1 - product.price / product.compare_at_price) * 100)}%
+                          -{Math.round((1 - product.price / (product.compare_at_price ?? product.price)) * 100)}%
                         </span>
                       )}
                       {!product.in_stock && (
@@ -85,7 +87,7 @@ export default async function Home() {
                         {isOnSale ? (
                           <>
                             <span className="text-xs text-gray-400 line-through leading-none">
-                              {formatPrice(product.compare_at_price, currency)}
+                              {formatPrice(product.compare_at_price ?? 0, currency)}
                             </span>
                             <span className="font-bold text-base text-red-600">
                               {formatPrice(product.price, currency)}

@@ -18,18 +18,9 @@ interface EmbeddedCheckoutProps {
 export function EmbeddedCheckout({ cartId, marketId, apiUrl, apiKey, stripePublishableKey }: EmbeddedCheckoutProps) {
   return (
     <CheckoutProvider cartId={cartId} marketId={marketId} apiUrl={apiUrl} apiKey={apiKey}>
-      <main style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 380px',
-        gap: '2rem',
-        maxWidth: '1100px',
-        margin: '0 auto',
-        padding: '2rem 1.5rem',
-        width: '100%',
-        minHeight: 'calc(100vh - 64px)',
-      }}>
+      <main className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 max-w-[1100px] mx-auto px-4 sm:px-6 py-8 w-full min-h-[calc(100vh-64px)]">
         {/* Left — Checkout Steps */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="flex flex-col gap-6 order-2 lg:order-1">
           <h1 style={{
             fontSize: '1.75rem',
             fontWeight: 700,
@@ -45,7 +36,7 @@ export function EmbeddedCheckout({ cartId, marketId, apiUrl, apiKey, stripePubli
         </div>
 
         {/* Right — Order Summary */}
-        <aside style={{ position: 'sticky', top: '80px', alignSelf: 'start' }}>
+        <aside className="order-1 lg:order-2 lg:sticky lg:top-20 lg:self-start">
           <OrderSummary />
         </aside>
       </main>

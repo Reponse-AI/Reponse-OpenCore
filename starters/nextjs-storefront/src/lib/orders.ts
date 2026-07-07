@@ -160,3 +160,51 @@ export async function resendOrderConfirmation(
     return false;
   }
 }
+
+export async function getOrder(
+  orderId: string,
+  contactId: string
+): Promise<Order | null> {
+  try {
+    const { getSessionToken } = await import("./auth");
+    const token = await getSessionToken();
+    const headers: Record<string, string> = { "x-workspace-id": workspaceId };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(
+      `${apiUrl}/v1/orders/${encodeURIComponent(orderId)}?contact_id=${encodeURIComponent(contactId)}`,
+      {
+        headers,
+        cache: "no-store",
+      }
+    );
+
+    if (!res.ok) return null;
+    return (await res.json()) as Order;
+  } catch {
+    return null;
+  }
+}
+
+export async function resendInvoice(orderId: string): Promise<boolean> {
+  try {
+    const { getSessionToken } = await import("./auth");
+    const token = await getSessionToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-workspace-id": workspaceId,
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(
+      `${apiUrl}/v1/orders/${orderId}/resend-invoice`,
+      {
+        method: "POST",
+        headers,
+      }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

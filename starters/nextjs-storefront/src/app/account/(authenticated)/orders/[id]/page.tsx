@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getContactId } from "@/lib/auth";
-import { getOrdersByContact } from "@/lib/orders";
+import { getOrder } from "@/lib/orders";
 import { formatMoney } from "@/lib/currency";
 import { OrderActions } from "@/components/OrderActions";
+import { InvoiceButton } from "@/components/InvoiceButton";
 import type { Order } from "@/lib/orders";
 
 export const metadata: Metadata = {
@@ -64,9 +65,7 @@ export default async function OrderDetailPage({
     redirect("/account/login");
   }
 
-  // Fetch all orders and find the matching one (no separate single-order endpoint yet)
-  const orders = await getOrdersByContact(contactId);
-  const order = orders.find((o) => o.id === id);
+  const order = await getOrder(id, contactId);
 
   if (!order) notFound();
 
@@ -299,10 +298,16 @@ export default async function OrderDetailPage({
         )}
 
         {/* Actions */}
-        <OrderActions
-          orderId={order.id}
-          isCancellable={isCancellable}
-        />
+        <div className="space-y-4">
+          <OrderActions
+            orderId={order.id}
+            isCancellable={isCancellable}
+          />
+          <InvoiceButton
+            orderId={order.id}
+            financialStatus={order.financial_status}
+          />
+        </div>
 
         {/* Note */}
         {order.note && (

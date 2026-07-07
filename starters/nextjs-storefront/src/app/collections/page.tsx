@@ -1,13 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { reponse } from "@/lib/reponse";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Collections",
   description: "Browse our product collections",
+  openGraph: {
+    title: "Collections",
+    description: "Browse our product collections",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Collections",
+    description: "Browse our product collections",
+  },
 };
 
 export default async function CollectionsPage() {
+  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+
   let collections: Array<{
     id: string;
     handle: string;
@@ -27,9 +40,34 @@ export default async function CollectionsPage() {
     error = message;
   }
 
+  // ─── JSON-LD: CollectionPage ───────────────────────────────────────────────
+  const collectionPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Collections",
+    description: "Browse our product collections",
+    url: `${siteUrl}/collections`,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: collections.length,
+      itemListElement: collections.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.title,
+        url: `${siteUrl}/collections/${c.handle}`,
+      })),
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
       <Header />
+
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageJsonLd) }}
+      />
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-8 py-12">
         <div className="mb-10">

@@ -6,9 +6,21 @@ import { SupportForm } from "./SupportForm";
 
 export async function generateMetadata() {
   const config = await getStoreConfig();
+  const title = `Support – ${config["--rp-brand-name"]}`;
+  const description = "Need help? Contact our support team and we'll get back to you as soon as possible.";
   return {
-    title: `Support – ${config["--rp-brand-name"]}`,
-    description: "Need help? Contact our support team and we'll get back to you as soon as possible.",
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website" as const,
+    },
+    twitter: {
+      card: "summary" as const,
+      title,
+      description,
+    },
   };
 }
 

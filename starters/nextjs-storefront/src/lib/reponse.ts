@@ -10,7 +10,7 @@ const env = isServer
       REPONSE_WORKSPACE_ID: process.env.REPONSE_WORKSPACE_ID || "",
       REPONSE_API_URL: process.env.REPONSE_API_URL || "https://reponse.ai/api",
     }
-  : ((globalThis as any).__ENV ?? {
+  : (((globalThis as Record<string, unknown>).__ENV as Record<string, string> | undefined) ?? {
       REPONSE_WORKSPACE_ID: "",
       REPONSE_API_URL: "https://reponse.ai/api",
     });

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getAuthenticatedContact } from "@/lib/auth";
 import { LogoutButton } from "@/components/LogoutButton";
+import { EditProfileForm } from "@/components/EditProfileForm";
 
 export const metadata: Metadata = {
   title: "My Profile",
@@ -48,45 +49,9 @@ export default async function AccountProfilePage() {
           </div>
         </div>
 
-        {/* Details */}
+        {/* Editable details */}
         <div className="p-8 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
-                Email
-              </dt>
-              <dd className="text-sm text-gray-900">{contact.email}</dd>
-            </div>
-
-            {fullName && (
-              <div>
-                <dt className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
-                  Name
-                </dt>
-                <dd className="text-sm text-gray-900">{fullName}</dd>
-              </div>
-            )}
-
-            {contact.phone && (
-              <div>
-                <dt className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
-                  Phone
-                </dt>
-                <dd className="text-sm text-gray-900">{contact.phone}</dd>
-              </div>
-            )}
-
-            {contact.lifecycle_stage && (
-              <div>
-                <dt className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
-                  Status
-                </dt>
-                <dd className="text-sm text-gray-900 capitalize">
-                  {contact.lifecycle_stage}
-                </dd>
-              </div>
-            )}
-          </div>
+          <EditProfileForm contact={contact} />
 
           <div className="border-t border-gray-100 pt-6">
             <LogoutButton />
