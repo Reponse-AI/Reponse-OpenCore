@@ -113,8 +113,8 @@ export default async function OrdersPage() {
                       })}
                     </time>
                     <span>
-                      {order.line_items.length} item
-                      {order.line_items.length !== 1 ? "s" : ""}
+                      {order.line_items?.length ?? 0} item
+                      {(order.line_items?.length ?? 0) !== 1 ? "s" : ""}
                     </span>
                   </div>
                 </div>

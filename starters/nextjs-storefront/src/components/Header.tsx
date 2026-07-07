@@ -45,6 +45,7 @@ export async function Header() {
             width={32}
             height={32}
             className="h-8 w-auto object-contain"
+            unoptimized
           />
         ) : null}
         <span>{storeName}</span>

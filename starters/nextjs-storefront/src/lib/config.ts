@@ -68,6 +68,9 @@ export async function getStoreConfig(): Promise<StoreTheme> {
     );
     if (!res.ok) throw new Error('Failed to fetch theme');
     const data: StoreTheme = await res.json();
+    // An unconfigured brand name/logo must not erase the local defaults
+    data['--rp-brand-name'] = data['--rp-brand-name'] || DEFAULT_THEME['--rp-brand-name'];
+    data['--rp-brand-logo'] = data['--rp-brand-logo'] || DEFAULT_THEME['--rp-brand-logo'];
     cachedConfig = data;
     cacheTime = Date.now();
     return cachedConfig;

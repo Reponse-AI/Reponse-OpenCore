@@ -58,6 +58,32 @@ export async function clearSession(): Promise<void> {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
+/** Sign in as the workspace's demo customer (no OTP). Server action. */
+export async function demoLogin(): Promise<{ ok: boolean; error?: string }> {
+  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
+  const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+  if (!workspaceId) return { ok: false, error: "Workspace not configured" };
+
+  try {
+    const res = await fetch(`${apiUrl.replace("/api", "")}/api/auth/b2c/demo`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceId }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      return { ok: false, error: "Demo account unavailable" };
+    }
+
+    const data = (await res.json()) as { sessionToken: string; contactId: string };
+    await setSession(data.sessionToken, data.contactId);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Demo account unavailable" };
+  }
+}
+
 export async function getAuthenticatedContact(): Promise<AuthenticatedContact | null> {
   const token = await getSessionToken();
   if (!token) return null;
