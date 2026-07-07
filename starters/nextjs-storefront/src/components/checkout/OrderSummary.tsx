@@ -74,32 +74,38 @@ export function OrderSummary({ contactId }: OrderSummaryProps) {
             <div style={{
               width: '56px',
               height: '56px',
-              borderRadius: '8px',
-              overflow: 'hidden',
               flexShrink: 0,
-              backgroundColor: 'var(--rp-color-background)',
-              border: '1px solid var(--rp-color-border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               position: 'relative' as const,
             }}>
-              {item.image_url ? (
-                <img
-                  src={item.image_url}
-                  alt={item.title}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <span style={{ fontSize: '20px', opacity: 0.3 }}>📦</span>
-              )}
+              <div style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                backgroundColor: 'var(--rp-color-background)',
+                border: '1px solid var(--rp-color-border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                {item.image_url ? (
+                  <img
+                    src={item.image_url}
+                    alt={item.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <span style={{ fontSize: '20px', opacity: 0.3 }}>📦</span>
+                )}
+              </div>
               {/* Quantity badge */}
               <span style={{
                 position: 'absolute' as const,
-                top: '-6px',
-                right: '-6px',
-                width: '22px',
+                top: '-8px',
+                right: '-8px',
+                minWidth: '22px',
                 height: '22px',
+                padding: '0 6px',
                 borderRadius: '50%',
                 backgroundColor: 'var(--rp-color-text)',
                 color: 'var(--rp-color-background)',
@@ -108,6 +114,8 @@ export function OrderSummary({ contactId }: OrderSummaryProps) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                lineHeight: 1,
+                boxSizing: 'border-box' as const,
               }}>{item.quantity}</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
