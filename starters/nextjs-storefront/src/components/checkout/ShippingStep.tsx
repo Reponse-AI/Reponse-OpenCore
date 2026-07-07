@@ -1,8 +1,9 @@
 'use client';
 
 import { formatPrice } from '@/lib/currency';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { ShippingRate, useCheckout } from './CheckoutProvider';
+import { formatDeliveryEstimate, useShippingRates } from './useShippingRates';
 
 const COUNTRIES = [
   { code: 'FR', name: 'France' },
@@ -29,39 +30,21 @@ export function ShippingStep() {
     postal_code: '',
     country: 'FR',
   });
-  const [rates, setRates] = useState<ShippingRate[]>([]);
-  const [selectedRate, setSelectedRate] = useState<ShippingRate | null>(null);
-  const [loadingRates, setLoadingRates] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch shipping rates when country changes
-  const fetchRates = useCallback(async (country: string) => {
-    setLoadingRates(true);
-    setError(null);
-    try {
-      const marketParam = marketId ? `&market_id=${marketId}` : '';
-      const res = await fetch(
-        `${apiUrl}/v1/shipping/rates?country=${country}&cart_id=${cartId}${marketParam}`,
-        { headers: { 'Authorization': `Bearer ${apiKey}` } }
-      );
-      if (!res.ok) throw new Error('Failed to fetch shipping rates');
-      const data = await res.json();
-      const ratesData: ShippingRate[] = data.data ?? data.rates ?? data;
-      setRates(Array.isArray(ratesData) ? ratesData : []);
-      setSelectedRate(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load shipping rates');
-      setRates([]);
-    } finally {
-      setLoadingRates(false);
-    }
-  }, [apiUrl, apiKey, cartId, marketId]);
-
-  useEffect(() => {
-    if (step === 'shipping') {
-      fetchRates(address.country);
-    }
-  }, [step, address.country, fetchRates]);
+  const {
+    rates,
+    selectedRate,
+    setSelectedRate,
+    loadingRates,
+    error,
+    setError,
+  } = useShippingRates({
+    apiUrl,
+    apiKey,
+    cartId,
+    marketId,
+    country: address.country,
+    enabled: step === 'shipping',
+  });
 
   if (step !== 'shipping') return null;
 
@@ -282,6 +265,7 @@ export function ShippingStep() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {rates.map(rate => {
               const isSelected = selectedRate?.id === rate.id;
+              const deliveryEstimate = formatDeliveryEstimate(rate);
               return (
                 <label
                   key={rate.id}
@@ -312,9 +296,9 @@ export function ShippingStep() {
                     <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--rp-color-text)' }}>
                       {rate.name}
                     </div>
-                    {rate.delivery_estimate && (
+                    {deliveryEstimate && (
                       <div style={{ fontSize: '13px', color: 'var(--rp-color-text-secondary)', marginTop: '2px' }}>
-                        {rate.delivery_estimate.min_days}–{rate.delivery_estimate.max_days} business days
+                        {deliveryEstimate}
                       </div>
                     )}
                   </div>

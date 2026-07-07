@@ -19,10 +19,12 @@ interface RawCartItem {
 
 export interface ShippingRate {
   id: string;
+  profile_id?: string;
+  profile_name?: string;
   name: string;
   price: number;
   currency: string;
-  delivery_estimate: { min_days: number; max_days: number };
+  delivery_estimate?: { min_days: number | null; max_days: number | null };
   is_free: boolean;
 }
 
