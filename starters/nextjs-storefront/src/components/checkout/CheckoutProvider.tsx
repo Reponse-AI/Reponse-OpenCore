@@ -4,15 +4,18 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, u
 
 interface RawCartItem {
   id: string;
-  title?: string;
-  product_title?: string;
-  variant_title?: string;
-  quantity?: number;
-  unit_price?: number;
-  price?: number;
-  line_price?: number;
-  image_url?: string;
-  image?: string;
+  quantity: number;
+  price: number;
+  product_id: string;
+  variant_id: string;
+  product: {
+    id: string;
+    title: string;
+    handle: string;
+    description: string;
+    price: number;
+    images: string[];
+  };
 }
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -156,12 +159,12 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
 
         const items = (cart.items || []).map((item: RawCartItem) => ({
           id: item.id,
-          title: item.title || item.product_title || '',
-          variant_title: item.variant_title || '',
+          title: item.product.title || '',
+          variant_title: item.product.title || '',
           quantity: item.quantity || 1,
-          unit_price: item.unit_price ?? item.price ?? 0,
-          line_price: item.line_price ?? (item.unit_price ?? item.price ?? 0) * (item.quantity || 1),
-          image_url: item.image_url || item.image || '',
+          unit_price: item.product.price ?? item.price ?? 0,
+          line_price: (item.price ?? 0) * (item.quantity || 1),
+          image_url: item.product.images[0] || '',
         }));
 
         const subtotal = items.reduce((acc: number, i: CheckoutState['items'][number]) => acc + i.line_price, 0);
