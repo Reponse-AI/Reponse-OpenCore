@@ -2,13 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies, headers } from "next/headers";
 import { env } from "@/env";
-import { Header } from "@/components/Header";
 import { ImageGallery } from "@/components/ImageGallery";
 import { VariantSelector } from "@/components/VariantSelector";
 import { StarRating } from "@/components/StarRating";
 import { ReviewsList } from "@/components/ReviewsList";
 import { ProductFacts } from "@/components/ProductFacts";
-import { reponse } from "@/lib/reponse";
+import { getProductBySlug } from "@/lib/catalog";
 import { getProductReviews } from "@/lib/reviews";
 import type { Review as ReviewType } from "@/lib/reviews";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
@@ -38,15 +37,6 @@ async function resolveLocale(): Promise<Locale> {
 }
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
-
-async function getProduct(slug: string) {
-  try {
-    const response = await reponse.catalog.listProducts({ query: { slug } });
-    return (response.data?.data?.[0] as StorefrontProduct | undefined) ?? null;
-  } catch {
-    return null;
-  }
-}
 
 function buildOptionDefinitions(product: StorefrontProduct): StorefrontOptionDefinition[] {
   const variants = product.variants ?? [];
@@ -115,7 +105,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) return { title: "Product Not Found" };
 
@@ -144,12 +134,15 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) notFound();
 
-  const locale = await resolveLocale();
-  const dict = await getDictionary(locale);
+  const [locale, storeConfig, facts] = await Promise.all([
+    resolveLocale(),
+    getStoreConfig(),
+    getProductFacts(product.id),
+  ]);
 
   const variants: StorefrontProductVariant[] = product.variants ?? [];
 
@@ -162,18 +155,17 @@ export default async function ProductPage({
     product.compare_at_price != null && product.compare_at_price > product.price;
 
   // ─── Fetch reviews (only if reviews module is active) ────────
-  const storeConfig = await getStoreConfig();
   const reviewsEnabled = isModuleActive(storeConfig, "reviews");
 
-  const reviewsData = reviewsEnabled
-    ? await getProductReviews(product.id, { limit: 10, sort: "recent" })
-    : null;
+  const [dict, reviewsData] = await Promise.all([
+    getDictionary(locale),
+    reviewsEnabled
+      ? getProductReviews(product.id, { limit: 10, sort: "recent" })
+      : Promise.resolve(null),
+  ]);
 
   const hasReviews =
     reviewsData !== null && reviewsData.aggregates.count > 0;
-
-  // ─── Fetch product facts ─────────────────────────────────────
-  const facts = await getProductFacts(product.id);
 
   // ─── JSON-LD ──────────────────────────────────────────────────
   const siteUrl = env.SITE_URL;
@@ -252,7 +244,6 @@ export default async function ProductPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <Header />
       <script
         dangerouslySetInnerHTML={{
           __html: `window.ReponseWidget = window.ReponseWidget || {}; window.ReponseWidget.activeProductId = ${JSON.stringify(product.id)};`,

@@ -1,11 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Header } from "@/components/Header";
 import { ProductBuyNowAction } from "@/components/ProductBuyNowAction";
-import { reponse } from "@/lib/reponse";
-import { addToCart } from "@/lib/cart";
-import { revalidatePath } from "next/cache";
+import { AddToCartButton } from "@/components/AddToCartButton";
+import { listProducts } from "@/lib/catalog";
 import { formatPrice } from "@/lib/currency";
 import type { StorefrontProduct } from "@/types/storefront";
 
@@ -47,17 +45,14 @@ export default async function ProductsPage({
   let error: string | null = null;
 
   try {
-    const query: Record<string, unknown> = { limit: 24 };
+    const query: Record<string, string | number> = { limit: 24 };
     if (q) query.query = q;
     if (cursor) query.cursor = cursor;
 
-    const response = await reponse.catalog.listProducts({ query });
-    const data = response.data as
-      | { data?: StorefrontProduct[]; next_cursor?: string | null; has_more?: boolean }
-      | undefined;
-    products = data?.data ?? [];
-    nextCursor = data?.next_cursor ?? null;
-    hasMore = data?.has_more ?? false;
+    const data = await listProducts(query);
+    products = data.data;
+    nextCursor = data.next_cursor;
+    hasMore = data.has_more;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("Failed to fetch products:", message);
@@ -71,7 +66,6 @@ export default async function ProductsPage({
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
-      <Header />
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-8 py-12">
         <div className="mb-10">
@@ -198,39 +192,14 @@ export default async function ProductsPage({
                           )}
                         </div>
 
-                        {/* Add to cart form — sibling of the Link, not nested */}
-                        <form
-                          action={async () => {
-                            "use server";
-                            if (!inStock) return;
-                            const variantId = variants?.[0]?.id;
-                            await addToCart(id, variantId, 1);
-                            revalidatePath("/products");
-                          }}
-                        >
-                          <button
-                            disabled={!inStock}
-                            type="submit"
-                            className="px-3 py-2 bg-black text-white text-xs font-semibold rounded-xl hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1.5"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="13"
-                              height="13"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <circle cx="9" cy="21" r="1" />
-                              <circle cx="20" cy="21" r="1" />
-                              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                            </svg>
-                            {inStock ? "Add" : "Sold Out"}
-                          </button>
-                        </form>
+                        <AddToCartButton
+                          productId={id}
+                          variantId={variants?.[0]?.id}
+                          price={price}
+                          currency={currency}
+                          disabled={!inStock}
+                          compact
+                        />
                       </div>
 
                       <div className="mt-3">

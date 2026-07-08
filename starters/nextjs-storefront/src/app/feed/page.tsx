@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies, headers } from "next/headers";
-import { Header } from "@/components/Header";
 import { type Locale, parseLocale, getDictionary, LOCALE_COOKIE } from "@/lib/i18n";
 import { env } from "@/env";
 
@@ -35,7 +34,6 @@ export default async function FeedPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
-      <Header />
 
       <main className="flex-grow max-w-3xl w-full mx-auto px-8 py-16">
         {/* Breadcrumb */}

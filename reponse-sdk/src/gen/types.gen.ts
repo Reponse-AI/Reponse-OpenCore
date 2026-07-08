@@ -76,6 +76,20 @@ export type CollectionListResponse = {
     data: Array<Collection>;
 };
 
+export type CartSummary = {
+    id: string;
+    items: Array<{
+        id: string;
+        product_id: string;
+        variant_id?: string | null;
+        quantity: number;
+        price: number;
+    }>;
+    item_count: number;
+    subtotal: number;
+    currency: string;
+};
+
 export type AppliedDiscount = {
     code: string;
     /**
@@ -97,7 +111,7 @@ export type Cart = {
     items: Array<{
         id: string;
         product_id: string;
-        variant_id?: string;
+        variant_id?: string | null;
         quantity: number;
         price: number;
     }>;
@@ -316,7 +330,7 @@ export type PostV1CartsResponses = {
     /**
      * The created cart
      */
-    201: Cart;
+    201: CartSummary;
 };
 
 export type PostV1CartsResponse = PostV1CartsResponses[keyof PostV1CartsResponses];
@@ -383,10 +397,12 @@ export type PostV1CartsByIdItemsErrors = {
 
 export type PostV1CartsByIdItemsResponses = {
     /**
-     * Success
+     * Updated cart summary
      */
-    200: unknown;
+    200: CartSummary;
 };
+
+export type PostV1CartsByIdItemsResponse = PostV1CartsByIdItemsResponses[keyof PostV1CartsByIdItemsResponses];
 
 export type DeleteV1CartsByIdItemsByLineIdData = {
     body?: never;
@@ -413,10 +429,12 @@ export type DeleteV1CartsByIdItemsByLineIdErrors = {
 
 export type DeleteV1CartsByIdItemsByLineIdResponses = {
     /**
-     * Success
+     * Updated cart summary
      */
-    200: unknown;
+    200: CartSummary;
 };
+
+export type DeleteV1CartsByIdItemsByLineIdResponse = DeleteV1CartsByIdItemsByLineIdResponses[keyof DeleteV1CartsByIdItemsByLineIdResponses];
 
 export type PutV1CartsByIdItemsByLineIdData = {
     body?: {
@@ -452,10 +470,12 @@ export type PutV1CartsByIdItemsByLineIdErrors = {
 
 export type PutV1CartsByIdItemsByLineIdResponses = {
     /**
-     * Success
+     * Updated cart summary
      */
-    200: unknown;
+    200: CartSummary;
 };
+
+export type PutV1CartsByIdItemsByLineIdResponse = PutV1CartsByIdItemsByLineIdResponses[keyof PutV1CartsByIdItemsByLineIdResponses];
 
 export type DeleteV1CartsByIdPromotionsData = {
     body?: RemovePromoCodeInput;

@@ -1,4 +1,3 @@
-import { Header } from "@/components/Header";
 import { clearBuyNowCartId, clearCartId } from "@/lib/cart";
 import { parseCheckoutMode } from "@/lib/checkout/mode";
 import Link from "next/link";
@@ -22,7 +21,6 @@ export default async function OrderSuccessPage({
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
-      <Header />
       <main className="flex-grow max-w-2xl w-full mx-auto px-8 py-32 flex flex-col items-center text-center">
         <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
           <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

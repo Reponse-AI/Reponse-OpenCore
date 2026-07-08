@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Header } from "@/components/Header";
-import { reponse } from "@/lib/reponse";
 import { env } from "@/env";
+import { listCollections } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Collections",
@@ -32,8 +31,7 @@ export default async function CollectionsPage() {
   let error: string | null = null;
 
   try {
-    const response = await reponse.catalog.listCollections();
-    collections = (response.data?.data ?? []) as typeof collections;
+    collections = (await listCollections()) as typeof collections;
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Unknown error";
@@ -62,7 +60,6 @@ export default async function CollectionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
-      <Header />
 
       {/* JSON-LD structured data */}
       <script

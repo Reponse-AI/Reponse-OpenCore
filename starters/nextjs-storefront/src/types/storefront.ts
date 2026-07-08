@@ -102,6 +102,22 @@ export interface StorefrontCart {
   updated_at?: string;
 }
 
+export interface CartSummaryItem {
+  id: string;
+  product_id: string;
+  variant_id: string | null;
+  quantity: number;
+  price: number;
+}
+
+export interface CartSummary {
+  id: string;
+  item_count: number;
+  subtotal: number;
+  currency: string;
+  items: CartSummaryItem[];
+}
+
 export interface PromoResult {
   success: boolean;
   error?: string;
