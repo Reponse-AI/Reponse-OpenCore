@@ -8,6 +8,7 @@ import type { PromoResult } from "@/types/storefront";
 import { env } from "@/env";
 
 const CART_COOKIE_NAME = "reponse_cart_id";
+const BUY_NOW_CART_COOKIE_NAME = "reponse_buy_now_cart_id";
 
 export async function getCartId(): Promise<string | undefined> {
   const cookieStore = await cookies();
@@ -30,6 +31,29 @@ export async function setCartId(cartId: string) {
 export async function clearCartId() {
   const cookieStore = await cookies();
   cookieStore.delete(CART_COOKIE_NAME);
+}
+
+export async function getBuyNowCartId(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get(BUY_NOW_CART_COOKIE_NAME)?.value;
+}
+
+async function setBuyNowCartId(cartId: string) {
+  const cookieStore = await cookies();
+  cookieStore.set({
+    name: BUY_NOW_CART_COOKIE_NAME,
+    value: cartId,
+    httpOnly: true,
+    path: "/",
+    sameSite: "lax",
+    secure: env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24,
+  });
+}
+
+export async function clearBuyNowCartId() {
+  const cookieStore = await cookies();
+  cookieStore.delete(BUY_NOW_CART_COOKIE_NAME);
 }
 
 export async function getCart() {
@@ -88,6 +112,23 @@ export async function addToCart(productId: string, variantId?: string, quantity:
     throw new Error(getApiErrorMessage(error, "Failed to add to cart"));
   }
   return getCart();
+}
+
+export async function createBuyNowCart(productId: string, variantId?: string) {
+  const marketCurrency = env.MARKET_CURRENCY || undefined;
+  const { data: cart, error } = (await reponse.cart.create({
+    body: {
+      items: [{ product_id: productId, variant_id: variantId, quantity: 1 }],
+      ...(marketCurrency ? { currency: marketCurrency } : {}),
+    },
+  })) as SdkResult<Cart>;
+
+  if (error || !cart?.id) {
+    throw new Error(getApiErrorMessage(error, "Failed to create buy-now cart"));
+  }
+
+  await setBuyNowCartId(cart.id);
+  return cart;
 }
 
 export async function updateCartItem(lineId: string, quantity: number) {

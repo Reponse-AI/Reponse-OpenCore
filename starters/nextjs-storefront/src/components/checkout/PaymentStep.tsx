@@ -9,7 +9,7 @@ import { useConfirmOrder } from '@/hooks/useCheckoutApi';
 
 // ─── Inner Payment Form ──────────────────────────────────────────────────────
 
-function PaymentForm() {
+function PaymentForm({ successPath }: { successPath: string }) {
   const stripe = useStripe();
   const elements = useElements();
   const { setStep, customerEmail, customerName, shippingAddress, marketId, cartId, apiUrl, apiKey, total, currency } = useCheckout();
@@ -29,7 +29,7 @@ function PaymentForm() {
         elements,
         confirmParams: {
           receipt_email: customerEmail,
-          return_url: `${window.location.origin}/checkout/success`,
+          return_url: `${window.location.origin}${successPath}`,
         },
         redirect: 'if_required',
       });
@@ -52,7 +52,8 @@ function PaymentForm() {
           marketId,
         });
 
-        window.location.href = `${window.location.origin}/checkout/success?payment_intent=${paymentIntent.id}`;
+        const separator = successPath.includes('?') ? '&' : '?';
+        window.location.href = `${window.location.origin}${successPath}${separator}payment_intent=${paymentIntent.id}`;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
@@ -184,9 +185,10 @@ function PaymentForm() {
 
 interface PaymentStepProps {
   stripePublicKey: string;
+  successPath: string;
 }
 
-export function PaymentStep({ stripePublicKey }: PaymentStepProps) {
+export function PaymentStep({ stripePublicKey, successPath }: PaymentStepProps) {
   const { step, createPaymentIntent } = useCheckout();
   const [stripePromise] = useState(() => loadStripe(stripePublicKey));
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -290,7 +292,7 @@ export function PaymentStep({ stripePublicKey }: PaymentStepProps) {
         },
       }}
     >
-      <PaymentForm />
+          <PaymentForm successPath={successPath} />
     </Elements>
   );
 }

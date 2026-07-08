@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
+import { ProductBuyNowAction } from "@/components/ProductBuyNowAction";
 import { reponse } from "@/lib/reponse";
 import { addToCart } from "@/lib/cart";
 import { revalidatePath } from "next/cache";
@@ -97,6 +98,8 @@ export default async function ProductsPage({
                 const inStock = product.in_stock ?? true;
                 const images = product.images;
                 const variants = product.variants;
+                const hasOnlyDefaultVariant =
+                  product.has_only_default_variant ?? (variants?.length ?? 0) <= 1;
 
                 const isOnSale =
                   compareAtPrice != null && compareAtPrice > price;
@@ -228,6 +231,23 @@ export default async function ProductsPage({
                             {inStock ? "Add" : "Sold Out"}
                           </button>
                         </form>
+                      </div>
+
+                      <div className="mt-3">
+                        {hasOnlyDefaultVariant ? (
+                          <ProductBuyNowAction
+                            productId={id}
+                            variantId={variants?.[0]?.id}
+                            disabled={!inStock}
+                          />
+                        ) : (
+                          <Link
+                            href={`/products/${slug}`}
+                            className="w-full px-3 py-2 border border-black text-black text-xs font-semibold rounded-xl hover:bg-gray-50 active:scale-[0.98] transition-all flex items-center justify-center"
+                          >
+                            Choose options
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>

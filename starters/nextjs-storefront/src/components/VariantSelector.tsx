@@ -1,7 +1,9 @@
 "use client";
 
 import { Check, LoaderCircle, ShoppingCart } from "lucide-react";
+import { BuyNowButton } from "@/components/BuyNowButton";
 import { formatPrice } from "@/lib/currency";
+import { useBuyNow } from "@/hooks/useBuyNow";
 import { useCartMutations } from "@/hooks/useCartMutations";
 import { useProductVariants } from "@/hooks/useProductVariants";
 import type {
@@ -50,6 +52,7 @@ export function VariantSelector({
     initialCompareAtPrice,
   });
   const { addItem } = useCartMutations();
+  const buyNow = useBuyNow();
   const adding = addItem.isPending;
   const added = addItem.isSuccess;
   const error = addItem.error instanceof Error ? addItem.error.message : null;
@@ -57,6 +60,11 @@ export function VariantSelector({
   const handleAddToCart = () => {
     if (!variantInStock || adding) return;
     addItem.mutate({ productId, variantId: displayVariant?.id, quantity: 1 });
+  };
+
+  const handleBuyNow = () => {
+    if (!variantInStock) return;
+    buyNow.startBuyNow({ productId, variantId: displayVariant?.id });
   };
 
   return (
@@ -166,13 +174,21 @@ export function VariantSelector({
           )}
         </button>
 
-        {error && (
+        <div className="mt-3">
+          <BuyNowButton
+            disabled={!variantInStock || adding}
+            isPending={buyNow.isPending}
+            onClick={handleBuyNow}
+          />
+        </div>
+
+        {(error || buyNow.error) && (
           <p className="text-sm text-red-600 mt-3 text-center" role="alert">
-            {error}
+            {error ?? buyNow.error}
           </p>
         )}
 
-        {!variantInStock && !error && (
+        {!variantInStock && !error && !buyNow.error && (
           <p className="text-center text-sm text-gray-400 mt-3">
             This item is currently out of stock. Check back soon.
           </p>

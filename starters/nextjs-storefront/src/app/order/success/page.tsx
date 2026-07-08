@@ -1,14 +1,24 @@
 import { Header } from "@/components/Header";
-import { clearCartId } from "@/lib/cart";
+import { clearBuyNowCartId, clearCartId } from "@/lib/cart";
+import { parseCheckoutMode } from "@/lib/checkout/mode";
 import Link from "next/link";
 
 export const metadata = {
   title: "Order Success | Reponse Store",
 };
 
-export default async function OrderSuccessPage() {
-  // Clear the cart cookie since checkout was successful
-  await clearCartId();
+export default async function OrderSuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  const { mode: rawMode } = await searchParams;
+  const mode = parseCheckoutMode(rawMode);
+  if (mode === "buy-now") {
+    await clearBuyNowCartId();
+  } else {
+    await clearCartId();
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">

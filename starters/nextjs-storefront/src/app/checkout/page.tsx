@@ -1,6 +1,10 @@
 import { Header } from "@/components/Header";
 import { reponse } from "@/lib/reponse";
-import { getCartId } from "@/lib/cart";
+import { getBuyNowCartId, getCartId } from "@/lib/cart";
+import {
+  parseCheckoutMode,
+  resolveCheckoutCartId,
+} from "@/lib/checkout/mode";
 import { redirect } from "next/navigation";
 import { EmbeddedCheckout } from "./embedded-checkout";
 import { env } from "@/env";
@@ -9,11 +13,26 @@ export const metadata = {
   title: "Checkout | Reponse Store",
 };
 
-export default async function CheckoutPage() {
-  const cartId = await getCartId();
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  const { mode: rawMode } = await searchParams;
+  const mode = parseCheckoutMode(rawMode);
+  const [regularCartId, buyNowCartId] = await Promise.all([
+    getCartId(),
+    getBuyNowCartId(),
+  ]);
+  const cartId = resolveCheckoutCartId(mode, {
+    cartId: regularCartId,
+    buyNowCartId,
+  });
+  const successPath =
+    mode === "buy-now" ? "/order/success?mode=buy-now" : "/order/success";
 
   if (!cartId) {
-    redirect("/cart");
+    redirect(mode === "buy-now" ? "/products" : "/cart");
   }
 
   // Embedded checkout (default) — Stripe Elements on the storefront
@@ -27,6 +46,7 @@ export default async function CheckoutPage() {
           apiUrl={env.REPONSE_API_URL}
           apiKey={env.REPONSE_API_KEY}
           stripePublishableKey={env.STRIPE_PUBLISHABLE_KEY}
+          successPath={successPath}
         />
       </div>
     );
@@ -44,8 +64,8 @@ export default async function CheckoutPage() {
     const response = await reponse.cart.createCheckout({
       body: {
         cart_id: cartId,
-        success_url: `${env.SITE_URL}/order/success`,
-        cancel_url: `${env.SITE_URL}/cart`,
+        success_url: `${env.SITE_URL}${successPath}`,
+        cancel_url: `${env.SITE_URL}${mode === "buy-now" ? "/products" : "/cart"}`,
         ...(marketId ? { market_id: marketId } : {}),
       } as Parameters<typeof reponse.cart.createCheckout>[0] extends { body?: infer B } ? B : never
     });
