@@ -6,6 +6,14 @@ describe("getDistinctVariantTitle", () => {
     expect(getDistinctVariantTitle("Tee", "  Blue / Large  ")).toBe("Blue / Large");
   });
 
+  it("hides the variant title when the product has only one variant", () => {
+    expect(getDistinctVariantTitle("Thermostat", "Standard", true)).toBeNull();
+  });
+
+  it("does not treat Default as a special title for multi-variant products", () => {
+    expect(getDistinctVariantTitle("Thermostat", "Default", false)).toBe("Default");
+  });
+
   it.each([
     ["Tee", "Tee"],
     ["Tee", "tee"],

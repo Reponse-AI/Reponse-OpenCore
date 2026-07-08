@@ -5,17 +5,13 @@
 // that the client doesn't have access to.
 
 import { env } from "@/env";
+import type { ActionResult } from "@/types/storefront";
 
 const apiUrl = env.REPONSE_API_URL;
 const workspaceId = env.REPONSE_WORKSPACE_ID;
 const apiKey = env.REPONSE_API_KEY;
 
-interface SubscribeResult {
-  success: boolean;
-  error?: string;
-}
-
-export async function subscribeNewsletter(email: string): Promise<SubscribeResult> {
+export async function subscribeNewsletter(email: string): Promise<ActionResult> {
   if (!email.trim()) {
     return { success: false, error: "Email is required" };
   }

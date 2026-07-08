@@ -71,7 +71,11 @@ export function OrderSummary({ contactId }: OrderSummaryProps) {
       {/* Cart Items */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {items.map((item) => {
-          const variantTitle = getDistinctVariantTitle(item.title, item.variant_title);
+          const variantTitle = getDistinctVariantTitle(
+            item.title,
+            item.variant_title,
+            item.has_only_one_variant,
+          );
 
           return (
             <div key={item.id} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>

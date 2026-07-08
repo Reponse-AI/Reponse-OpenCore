@@ -2,26 +2,9 @@
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { calculateCheckoutTotal, mapCartItemsForCheckout } from '@/lib/checkout/totals';
-import type { ShippingRate } from '@/types/storefront';
+import type { CheckoutSummaryItem, ShippingRate, StorefrontCart } from '@/types/storefront';
 
 export type { ShippingRate } from '@/types/storefront';
-
-interface RawCartItem {
-  id: string;
-  quantity: number;
-  price: number;
-  product_id: string;
-  variant_id: string | null;
-  variant_title: string | null;
-  product: {
-    id: string;
-    title: string;
-    handle: string;
-    description: string;
-    price: number;
-    images: string[];
-  };
-}
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -42,15 +25,7 @@ export interface CheckoutState {
   discountAmount: number;
   total: number;
   currency: string;
-  items: Array<{
-    id: string;
-    title: string;
-    variant_title: string | null;
-    quantity: number;
-    unit_price: number;
-    line_price: number;
-    image_url: string;
-  }>;
+  items: CheckoutSummaryItem[];
   isLoading: boolean;
   error: string | null;
 }
@@ -140,7 +115,7 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
 
         if (!cartRes.ok) throw new Error('Failed to load cart');
         const cartData = await cartRes.json();
-        const cart = cartData.data ?? cartData;
+        const cart: StorefrontCart = cartData.data ?? cartData;
 
         // Inject theme CSS variables
         if (themeRes.ok) {
@@ -155,25 +130,7 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
 
         if (cancelled) return;
 
-        const items = mapCartItemsForCheckout({
-          id: cartId,
-          items: (cart.items || []).map((item: RawCartItem) => ({
-            id: item.id,
-            product_id: item.product_id,
-            variant_id: item.variant_id,
-            variant_title: item.variant_title,
-            quantity: item.quantity,
-            price: item.product.price ?? item.price ?? 0,
-            product: {
-              id: item.product.id,
-              title: item.product.title,
-              handle: item.product.handle,
-              images: item.product.images,
-            },
-          })),
-          subtotal: cart.subtotal ?? 0,
-          currency: cart.currency || 'EUR',
-        });
+        const items = mapCartItemsForCheckout(cart);
 
         const subtotal = items.reduce((acc: number, i: CheckoutState['items'][number]) => acc + i.line_price, 0);
 

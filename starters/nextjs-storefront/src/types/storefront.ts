@@ -77,6 +77,7 @@ export interface StorefrontCartItem {
   product_id: string;
   variant_id?: string | null;
   variant_title?: string | null;
+  has_only_one_variant?: boolean;
   quantity: number;
   price: number;
   product?: StorefrontProductSummary;
@@ -320,10 +321,12 @@ export interface CreateTicketResult {
   error?: string;
 }
 
-export interface ReplyResult {
+export interface ActionResult {
   success: boolean;
   error?: string;
 }
+
+export type ReplyResult = ActionResult;
 
 export interface ShippingRate {
   id: string;
@@ -340,6 +343,7 @@ export interface CheckoutSummaryItem {
   id: string;
   title: string;
   variant_title: string | null;
+  has_only_one_variant: boolean;
   quantity: number;
   unit_price: number;
   line_price: number;

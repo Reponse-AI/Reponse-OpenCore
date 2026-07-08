@@ -30,5 +30,3 @@ export const env = createEnv({
   emptyStringAsUndefined: true,
   skipValidation: Boolean(process.env.SKIP_ENV_VALIDATION),
 });
-
-export type CheckoutMode = typeof env.CHECKOUT_MODE;

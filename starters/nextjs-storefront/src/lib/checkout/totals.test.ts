@@ -16,6 +16,7 @@ describe("checkout totals", () => {
           product_id: "prod_1",
           variant_id: "var_1",
           variant_title: "Blue / Large",
+          has_only_one_variant: false,
           quantity: 2,
           price: 8,
           product: {
@@ -35,6 +36,7 @@ describe("checkout totals", () => {
         id: "line_1",
         title: "Tee",
         variant_title: "Blue / Large",
+        has_only_one_variant: false,
         quantity: 2,
         unit_price: 8,
         line_price: 16,
@@ -52,6 +54,7 @@ describe("checkout totals", () => {
           product_id: "prod_1",
           variant_id: null,
           variant_title: null,
+          has_only_one_variant: true,
           quantity: 1,
           price: 8,
           product: {
@@ -66,6 +69,9 @@ describe("checkout totals", () => {
       currency: "EUR",
     };
 
-    expect(mapCartItemsForCheckout(cart)[0]?.variant_title).toBeNull();
+    expect(mapCartItemsForCheckout(cart)[0]).toMatchObject({
+      variant_title: null,
+      has_only_one_variant: true,
+    });
   });
 });

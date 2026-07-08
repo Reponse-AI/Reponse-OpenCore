@@ -48,7 +48,11 @@ export default async function CartPage() {
             <div className="flex-grow flex flex-col gap-6">
               {items.map((item) => {
                 const productTitle = item.product?.title || `Product #${(item.product_id || "").slice(0, 8)}`;
-                const variantTitle = getDistinctVariantTitle(productTitle, item.variant_title);
+                const variantTitle = getDistinctVariantTitle(
+                  productTitle,
+                  item.variant_title,
+                  item.has_only_one_variant,
+                );
 
                 return (
                   <div key={item.id} className="flex gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">

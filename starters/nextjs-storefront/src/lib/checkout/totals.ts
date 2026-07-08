@@ -19,6 +19,7 @@ export function mapCartItemsForCheckout(cart: StorefrontCart): CheckoutSummaryIt
       id: item.id,
       title,
       variant_title: item.variant_title ?? null,
+      has_only_one_variant: item.has_only_one_variant ?? false,
       quantity: item.quantity || 1,
       unit_price: item.product?.id ? item.price : item.price,
       line_price: item.price * (item.quantity || 1),
