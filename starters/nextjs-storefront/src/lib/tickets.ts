@@ -2,52 +2,13 @@
 // Direct fetch because the SDK hasn't been regenerated yet for these routes.
 
 import { getSessionToken } from "./auth";
+import type { CreateTicketData, CreateTicketResult, ReplyResult, Ticket } from "@/types/storefront";
+import { env } from "@/env";
 
-const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+const apiUrl = env.REPONSE_API_URL;
+const workspaceId = env.REPONSE_WORKSPACE_ID;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface TicketNote {
-  id: string;
-  body: string;
-  author_type: "customer" | "agent" | "system";
-  author_name: string | null;
-  created_at: string;
-}
-
-export interface Ticket {
-  id: string;
-  subject: string;
-  status: "open" | "pending" | "resolved" | "closed";
-  category: string | null;
-  priority: string | null;
-  customer_email: string;
-  order_id: string | null;
-  notes: TicketNote[];
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateTicketData {
-  customer_email: string;
-  subject: string;
-  message: string;
-  category?: string;
-  order_id?: string;
-}
-
-export interface CreateTicketResult {
-  success: boolean;
-  id?: string;
-  status?: string;
-  error?: string;
-}
-
-export interface ReplyResult {
-  success: boolean;
-  error?: string;
-}
+export type { CreateTicketData, CreateTicketResult, ReplyResult, Ticket, TicketNote } from "@/types/storefront";
 
 // ─── Fetchers ─────────────────────────────────────────────────────────────────
 

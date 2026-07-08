@@ -1,34 +1,21 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { LoaderCircle } from "lucide-react";
+import { useState, useCallback, useRef, useEffect, type FormEvent } from "react";
 import Link from "next/link";
-import { setSession, demoLogin } from "@/lib/auth";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getEnv(): { apiUrl: string; workspaceId: string } {
-  if (typeof window !== "undefined" && (globalThis as Record<string, unknown>).__ENV) {
-    const env = (globalThis as Record<string, unknown>).__ENV as Record<string, string>;
-    return {
-      apiUrl: env.REPONSE_API_URL || "https://reponse.ai/api",
-      workspaceId: env.REPONSE_WORKSPACE_ID || "",
-    };
-  }
-  return { apiUrl: "https://reponse.ai/api", workspaceId: "" };
-}
+import { useOtpLogin } from "@/hooks/useOtpLogin";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LoginForm({ demoEnabled }: { demoEnabled: boolean }) {
-  const router = useRouter();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const { requestCode, verifyCode, loginDemo } = useOtpLogin();
+  const loading = requestCode.isPending || verifyCode.isPending || loginDemo.isPending;
 
   const codeInputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -47,73 +34,41 @@ export default function LoginForm({ demoEnabled }: { demoEnabled: boolean }) {
 
   const handleDemoLogin = useCallback(async () => {
     setError(null);
-    setLoading(true);
     try {
-      const result = await demoLogin();
-      if (!result.ok) {
-        setError(result.error || "Demo account unavailable");
-        return;
-      }
-      router.push("/account");
-      router.refresh();
-    } finally {
-      setLoading(false);
+      await loginDemo.mutateAsync();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Demo account unavailable");
     }
-  }, [router]);
+  }, [loginDemo]);
 
   const handleEmailSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setError(null);
-      setLoading(true);
 
       try {
-        const { apiUrl, workspaceId } = getEnv();
-        const res = await fetch(`${apiUrl.replace("/api", "")}/api/auth/b2c/otp`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ workspaceId, email }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({})) as Record<string, string>;
-          setError(data.error || "Failed to send verification code");
-          return;
-        }
-
+        await requestCode.mutateAsync(email);
         setStep("code");
         setResendCooldown(60);
         setResendSuccess(false);
-      } catch {
-        setError("Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       }
     },
-    [email]
+    [email, requestCode],
   );
 
   const handleResendCode = useCallback(async () => {
     setResendSuccess(false);
     setError(null);
     try {
-      const { apiUrl, workspaceId } = getEnv();
-      const res = await fetch(`${apiUrl.replace('/api', '')}/api/auth/b2c/otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workspaceId, email }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({})) as Record<string, string>;
-        setError(data.error || 'Failed to resend code');
-        return;
-      }
+      await requestCode.mutateAsync(email);
       setResendSuccess(true);
       setResendCooldown(60);
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     }
-  }, [email]);
+  }, [email, requestCode]);
 
   const handleCodeChange = useCallback(
     (index: number, value: string) => {
@@ -152,7 +107,7 @@ export default function LoginForm({ demoEnabled }: { demoEnabled: boolean }) {
   );
 
   const handleCodeSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setError(null);
 
@@ -162,39 +117,13 @@ export default function LoginForm({ demoEnabled }: { demoEnabled: boolean }) {
         return;
       }
 
-      setLoading(true);
-
       try {
-        const { apiUrl, workspaceId } = getEnv();
-        const res = await fetch(`${apiUrl.replace("/api", "")}/api/auth/b2c/verify`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ workspaceId, email, code: fullCode }),
-        });
-
-        const data = (await res.json()) as {
-          success?: boolean;
-          contactId?: string;
-          sessionToken?: string;
-          error?: string;
-        };
-
-        if (!res.ok || !data.success) {
-          setError(data.error || "Invalid code. Please try again.");
-          return;
-        }
-
-        if (data.sessionToken && data.contactId) {
-          await setSession(data.sessionToken, data.contactId);
-          router.push("/account");
-        }
-      } catch {
-        setError("Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
+        await verifyCode.mutateAsync({ email, code: fullCode });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       }
     },
-    [email, code, router]
+    [email, code, verifyCode],
   );
 
   return (
@@ -267,25 +196,7 @@ export default function LoginForm({ demoEnabled }: { demoEnabled: boolean }) {
                 >
                   {loading ? (
                     <>
-                      <svg
-                        className="animate-spin h-4 w-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
+                      <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
                       Sending…
                     </>
                   ) : (
@@ -341,25 +252,7 @@ export default function LoginForm({ demoEnabled }: { demoEnabled: boolean }) {
                 >
                   {loading ? (
                     <>
-                      <svg
-                        className="animate-spin h-4 w-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
+                      <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
                       Verifying…
                     </>
                   ) : (

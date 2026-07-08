@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import type { Product } from "@reponseai/sdk";
 import { reponse } from "@/lib/reponse";
+import { env } from "@/env";
 
 export const revalidate = 3600;
 
@@ -13,7 +14,7 @@ interface CollectionWithHandle {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+  const siteUrl = env.SITE_URL;
   const now = new Date();
 
   // Static pages

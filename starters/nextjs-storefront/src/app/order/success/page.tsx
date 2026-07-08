@@ -23,7 +23,7 @@ export default async function OrderSuccessPage() {
         
         <h1 className="text-4xl font-extrabold tracking-tight mb-4">Thank you for your order!</h1>
         <p className="text-xl text-gray-600 mb-8 max-w-md">
-          Your payment was successful and your order is now being processed. We'll send you a confirmation email shortly.
+          Your payment was successful and your order is now being processed. We&apos;ll send you a confirmation email shortly.
         </p>
         
         <Link href="/products" className="inline-block px-8 py-4 bg-black text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors">

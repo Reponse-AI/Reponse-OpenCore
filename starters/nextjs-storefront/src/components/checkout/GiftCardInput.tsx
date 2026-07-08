@@ -2,61 +2,30 @@
 
 import { useState, FormEvent } from 'react';
 import { formatPrice } from '@/lib/currency';
+import { useGiftCardRedemption } from '@/hooks/useCheckoutApi';
+import type { AppliedGiftCard } from '@/types/storefront';
 
 interface GiftCardInputProps {
   currency: string;
 }
 
-interface AppliedGiftCard {
-  code: string;
-  amount: number;
-}
-
 export function GiftCardInput({ currency }: GiftCardInputProps) {
   const [code, setCode] = useState('');
-  const [isApplying, setIsApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [appliedCard, setAppliedCard] = useState<AppliedGiftCard | null>(null);
-
-  const env = typeof window !== 'undefined'
-    ? ((globalThis as unknown as { __ENV?: { REPONSE_API_URL?: string; REPONSE_WORKSPACE_ID?: string } }).__ENV ?? {})
-    : {};
-  const apiUrl = env.REPONSE_API_URL || 'https://reponse.ai/api';
-  const workspaceId = env.REPONSE_WORKSPACE_ID || '';
+  const redeemGiftCard = useGiftCardRedemption();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!code.trim()) return;
 
-    setIsApplying(true);
     setError(null);
 
     try {
-      const res = await fetch(`${apiUrl}/v1/gift-cards/redeem`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-workspace-id': workspaceId,
-        },
-        body: JSON.stringify({ code: code.trim().toUpperCase() }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Invalid gift card code');
-        return;
-      }
-
-      setAppliedCard({
-        code: code.trim().toUpperCase(),
-        amount: data.amount ?? data.balance ?? 0,
-      });
+      setAppliedCard(await redeemGiftCard.mutateAsync(code));
       setCode('');
-    } catch {
-      setError('Failed to redeem gift card');
-    } finally {
-      setIsApplying(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to redeem gift card');
     }
   };
 
@@ -150,7 +119,7 @@ export function GiftCardInput({ currency }: GiftCardInputProps) {
         />
         <button
           type="submit"
-          disabled={isApplying || !code.trim()}
+          disabled={redeemGiftCard.isPending || !code.trim()}
           aria-label="Apply gift card code"
           style={{
             padding: '12px 20px',
@@ -161,13 +130,13 @@ export function GiftCardInput({ currency }: GiftCardInputProps) {
             fontSize: '14px',
             fontWeight: 600,
             fontFamily: 'var(--rp-font-family)',
-            cursor: isApplying || !code.trim() ? 'not-allowed' : 'pointer',
-            opacity: isApplying || !code.trim() ? 0.5 : 1,
+            cursor: redeemGiftCard.isPending || !code.trim() ? 'not-allowed' : 'pointer',
+            opacity: redeemGiftCard.isPending || !code.trim() ? 0.5 : 1,
             transition: 'all 0.2s',
             whiteSpace: 'nowrap',
           }}
           onMouseEnter={(e) => {
-            if (!isApplying && code.trim()) {
+            if (!redeemGiftCard.isPending && code.trim()) {
               e.currentTarget.style.backgroundColor = 'var(--rp-color-primary)';
               e.currentTarget.style.color = '#ffffff';
               e.currentTarget.style.borderColor = 'var(--rp-color-primary)';
@@ -179,7 +148,7 @@ export function GiftCardInput({ currency }: GiftCardInputProps) {
             e.currentTarget.style.borderColor = 'var(--rp-color-border)';
           }}
         >
-          {isApplying ? 'Applying…' : 'Redeem'}
+          {redeemGiftCard.isPending ? 'Applying…' : 'Redeem'}
         </button>
       </form>
       {error && (

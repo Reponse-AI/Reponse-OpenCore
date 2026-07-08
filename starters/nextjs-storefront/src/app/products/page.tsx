@@ -6,6 +6,7 @@ import { reponse } from "@/lib/reponse";
 import { addToCart } from "@/lib/cart";
 import { revalidatePath } from "next/cache";
 import { formatPrice } from "@/lib/currency";
+import type { StorefrontProduct } from "@/types/storefront";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,7 +40,7 @@ export default async function ProductsPage({
 }) {
   const { q, cursor } = await searchParams;
 
-  let products: Array<Record<string, unknown>> = [];
+  let products: StorefrontProduct[] = [];
   let nextCursor: string | null = null;
   let hasMore = false;
   let error: string | null = null;
@@ -50,10 +51,12 @@ export default async function ProductsPage({
     if (cursor) query.cursor = cursor;
 
     const response = await reponse.catalog.listProducts({ query });
-    const data = response.data as Record<string, unknown> | undefined;
-    products = (data?.data ?? []) as Array<Record<string, unknown>>;
-    nextCursor = (data?.next_cursor as string) ?? null;
-    hasMore = (data?.has_more as boolean) ?? false;
+    const data = response.data as
+      | { data?: StorefrontProduct[]; next_cursor?: string | null; has_more?: boolean }
+      | undefined;
+    products = data?.data ?? [];
+    nextCursor = data?.next_cursor ?? null;
+    hasMore = data?.has_more ?? false;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("Failed to fetch products:", message);
@@ -85,19 +88,15 @@ export default async function ProductsPage({
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => {
-                const id = product.id as string;
-                const title = product.title as string;
-                const slug = (product.slug as string) || id;
-                const price = product.price as number;
-                const compareAtPrice = product.compare_at_price as
-                  | number
-                  | undefined;
-                const currency = (product.currency as string) || "EUR";
-                const inStock = product.in_stock as boolean;
-                const images = product.images as string[] | undefined;
-                const variants = product.variants as
-                  | Array<{ id: string }>
-                  | undefined;
+                const id = product.id;
+                const title = product.title;
+                const slug = product.slug || product.handle || id;
+                const price = product.price;
+                const compareAtPrice = product.compare_at_price;
+                const currency = product.currency || "EUR";
+                const inStock = product.in_stock ?? true;
+                const images = product.images;
+                const variants = product.variants;
 
                 const isOnSale =
                   compareAtPrice != null && compareAtPrice > price;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { createTicket } from "@/lib/tickets";
+import { useSupportTicket } from "@/hooks/useSupportTicket";
 
 const CATEGORIES = [
   { value: "", label: "Select a category" },
@@ -18,22 +18,21 @@ export function SupportForm() {
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
     ticketId?: string;
     error?: string;
   } | null>(null);
+  const createTicket = useSupportTicket();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !subject.trim() || !message.trim()) return;
 
-    setIsSubmitting(true);
     setResult(null);
 
     try {
-      const res = await createTicket({
+      const res = await createTicket.mutateAsync({
         customer_email: email.trim(),
         subject: subject.trim(),
         message: message.trim(),
@@ -48,10 +47,11 @@ export function SupportForm() {
       } else {
         setResult({ success: false, error: res.error });
       }
-    } catch {
-      setResult({ success: false, error: "Something went wrong. Please try again." });
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      setResult({
+        success: false,
+        error: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+      });
     }
   };
 
@@ -279,7 +279,7 @@ export function SupportForm() {
       {/* Submit */}
       <button
         type="submit"
-        disabled={isSubmitting || !email.trim() || !subject.trim() || !message.trim()}
+        disabled={createTicket.isPending || !email.trim() || !subject.trim() || !message.trim()}
         style={{
           padding: "14px 28px",
           borderRadius: "var(--rp-radius)",
@@ -290,17 +290,17 @@ export function SupportForm() {
           fontFamily: "var(--rp-font-family)",
           border: "none",
           cursor:
-            isSubmitting || !email.trim() || !subject.trim() || !message.trim()
+            createTicket.isPending || !email.trim() || !subject.trim() || !message.trim()
               ? "not-allowed"
               : "pointer",
           opacity:
-            isSubmitting || !email.trim() || !subject.trim() || !message.trim()
+            createTicket.isPending || !email.trim() || !subject.trim() || !message.trim()
               ? 0.5
               : 1,
           transition: "opacity 0.2s",
         }}
       >
-        {isSubmitting ? "Submitting…" : "Submit Request"}
+        {createTicket.isPending ? "Submitting…" : "Submit Request"}
       </button>
     </form>
   );

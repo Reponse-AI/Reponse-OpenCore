@@ -3,10 +3,9 @@
 import { cookies } from "next/headers";
 import type { Cart } from "@reponseai/sdk";
 import { reponse } from "./reponse";
-
-// The SDK methods type their result as a union over an unresolved ThrowOnError
-// generic; at runtime throwOnError is false, so the result always has this shape.
-type SdkResult<T> = { data?: T; error?: unknown; response?: Response };
+import { getApiErrorMessage, type SdkResult } from "@/lib/api/response";
+import type { PromoResult } from "@/types/storefront";
+import { env } from "@/env";
 
 const CART_COOKIE_NAME = "reponse_cart_id";
 
@@ -23,7 +22,7 @@ export async function setCartId(cartId: string) {
     httpOnly: true,
     path: "/",
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });
 }
@@ -31,15 +30,6 @@ export async function setCartId(cartId: string) {
 export async function clearCartId() {
   const cookieStore = await cookies();
   cookieStore.delete(CART_COOKIE_NAME);
-}
-
-// The SDK never throws — it returns { data, error, response }.
-// API errors come back as { error: "message" }.
-function apiErrorMessage(error: unknown, fallback: string): string {
-  if (error && typeof error === "object" && "error" in error) {
-    return String((error as { error: unknown }).error);
-  }
-  return fallback;
 }
 
 export async function getCart() {
@@ -64,7 +54,7 @@ export async function addToCart(productId: string, variantId?: string, quantity:
     // Create new cart with the item — pass market currency so the cart
     // is not created in the API default (EUR) when the market uses a
     // different base_currency.
-    const marketCurrency = process.env.MARKET_CURRENCY || undefined;
+    const marketCurrency = env.MARKET_CURRENCY || undefined;
     const { data: cart, error } = (await reponse.cart.create({
       body: {
         items: [{ product_id: productId, variant_id: variantId, quantity }],
@@ -72,7 +62,7 @@ export async function addToCart(productId: string, variantId?: string, quantity:
       }
     })) as SdkResult<Cart>;
     if (error || !cart?.id) {
-      throw new Error(apiErrorMessage(error, "Failed to create cart"));
+      throw new Error(getApiErrorMessage(error, "Failed to create cart"));
     }
     await setCartId(cart.id);
     return cart;
@@ -95,7 +85,7 @@ export async function addToCart(productId: string, variantId?: string, quantity:
       await clearCartId();
       return addToCart(productId, variantId, quantity);
     }
-    throw new Error(apiErrorMessage(error, "Failed to add to cart"));
+    throw new Error(getApiErrorMessage(error, "Failed to add to cart"));
   }
   return getCart();
 }
@@ -109,7 +99,7 @@ export async function updateCartItem(lineId: string, quantity: number) {
     body: { quantity }
   })) as SdkResult<unknown>;
   if (error) {
-    throw new Error(apiErrorMessage(error, "Failed to update cart item"));
+    throw new Error(getApiErrorMessage(error, "Failed to update cart item"));
   }
 
   return getCart();
@@ -123,7 +113,7 @@ export async function removeCartItem(lineId: string) {
     path: { id: cartId, lineId }
   })) as SdkResult<unknown>;
   if (error) {
-    throw new Error(apiErrorMessage(error, "Failed to remove cart item"));
+    throw new Error(getApiErrorMessage(error, "Failed to remove cart item"));
   }
 
   return getCart();
@@ -132,15 +122,10 @@ export async function removeCartItem(lineId: string) {
 // ─── Promo Codes ─────────────────────────────────────────────
 // Direct fetch because the SDK hasn't been regenerated yet for these routes.
 
-const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+const apiUrl = env.REPONSE_API_URL;
+const workspaceId = env.REPONSE_WORKSPACE_ID;
 
-export type PromoResult = {
-  success: boolean;
-  error?: string;
-  code?: string;
-  discount?: number;
-};
+export type { PromoResult } from "@/types/storefront";
 
 export async function applyPromoCode(code: string): Promise<PromoResult> {
   const cartId = await getCartId();
@@ -189,4 +174,3 @@ export async function removePromoCode(code: string): Promise<PromoResult> {
 
   return { success: true, code };
 }
-

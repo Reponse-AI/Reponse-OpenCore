@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { env } from "@/env";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,7 +39,7 @@ export async function generateMetadata({
     const collection = collections.find((c) => c.handle === handle);
 
     if (collection) {
-      const siteUrl = process.env.SITE_URL || "";
+      const siteUrl = env.SITE_URL;
       const canonicalUrl = `${siteUrl}/collections/${handle}`;
 
       return {
@@ -77,10 +78,9 @@ export default async function CollectionPage({
       allCollections.find((c) => c?.handle === handle) ?? null;
 
     if (collection) {
-      const apiUrl =
-        process.env.REPONSE_API_URL || "http://localhost:3000/api";
-      const apiKey = process.env.REPONSE_API_KEY || "";
-      const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+      const apiUrl = env.REPONSE_API_URL;
+      const apiKey = env.REPONSE_API_KEY;
+      const workspaceId = env.REPONSE_WORKSPACE_ID;
 
       const productsRes = await fetch(
         `${apiUrl}/v1/collections/${handle}/products?workspace_id=${workspaceId}&limit=50`,
@@ -109,7 +109,7 @@ export default async function CollectionPage({
     notFound();
   }
 
-  const siteUrl = process.env.SITE_URL || "";
+  const siteUrl = env.SITE_URL;
   const collectionTitle = collection?.title || "Collection";
 
   // JSON-LD: CollectionPage with ItemList

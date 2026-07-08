@@ -1,80 +1,22 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { formatPrice } from '@/lib/currency';
+import { useLoyaltyRedemption } from '@/hooks/useCheckoutApi';
 
 interface LoyaltyRedemptionProps {
   contactId: string;
   currency: string;
 }
 
-interface BalanceData {
-  points_balance: number;
-  currency_value: number;
-}
-
-interface ProgramData {
-  points_name: string;
-  points_currency_ratio: number;
-}
-
 export function LoyaltyRedemption({ contactId, currency }: LoyaltyRedemptionProps) {
-  const [program, setProgram] = useState<ProgramData | null>(null);
-  const [balance, setBalance] = useState<BalanceData | null>(null);
   const [pointsToRedeem, setPointsToRedeem] = useState('');
-  const [isRedeeming, setIsRedeeming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [redeemed, setRedeemed] = useState<{ points: number; value: number } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const env = typeof window !== 'undefined'
-    ? ((globalThis as unknown as { __ENV?: { REPONSE_API_URL?: string; REPONSE_WORKSPACE_ID?: string } }).__ENV ?? {})
-    : {};
-  const apiUrl = env.REPONSE_API_URL || 'https://reponse.ai/api';
-  const workspaceId = env.REPONSE_WORKSPACE_ID || '';
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadData() {
-      try {
-        const [programRes, balanceRes] = await Promise.all([
-          fetch(`${apiUrl}/v1/loyalty`, {
-            headers: { 'x-workspace-id': workspaceId },
-          }),
-          fetch(`${apiUrl}/v1/loyalty?contact_id=${encodeURIComponent(contactId)}`, {
-            headers: { 'x-workspace-id': workspaceId },
-          }),
-        ]);
-
-        if (cancelled) return;
-
-        if (programRes.ok) {
-          const pData = await programRes.json();
-          const prog = pData.program ?? pData;
-          setProgram({
-            points_name: prog.points_name,
-            points_currency_ratio: prog.points_currency_ratio,
-          });
-        }
-
-        if (balanceRes.ok) {
-          const bData = await balanceRes.json();
-          setBalance({
-            points_balance: bData.points_balance,
-            currency_value: bData.currency_value,
-          });
-        }
-      } catch {
-        // Silently fail — component just won't render
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    loadData();
-    return () => { cancelled = true; };
-  }, [apiUrl, workspaceId, contactId]);
+  const loyalty = useLoyaltyRedemption(contactId);
+  const program = loyalty.program.data ?? null;
+  const balance = loyalty.balance.data ?? null;
+  const isLoading = loyalty.program.isLoading || loyalty.balance.isLoading;
 
   if (isLoading || !program || !balance || balance.points_balance <= 0) {
     return null;
@@ -113,37 +55,17 @@ export function LoyaltyRedemption({ contactId, currency }: LoyaltyRedemptionProp
     e.preventDefault();
     if (!isValidPoints) return;
 
-    setIsRedeeming(true);
     setError(null);
 
     try {
-      const res = await fetch(`${apiUrl}/v1/loyalty/redeem`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-workspace-id': workspaceId,
-        },
-        body: JSON.stringify({
-          contact_id: contactId,
-          points: pointsNum,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to redeem points');
-        return;
-      }
-
+      const data = await loyalty.redeem.mutateAsync({ points: pointsNum });
       setRedeemed({
         points: pointsNum,
         value: data.currency_value ?? redemptionValue,
       });
       setPointsToRedeem('');
-    } catch {
-      setError('Failed to redeem points');
-    } finally {
-      setIsRedeeming(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to redeem points');
     }
   };
 
@@ -207,7 +129,7 @@ export function LoyaltyRedemption({ contactId, currency }: LoyaltyRedemptionProp
         />
         <button
           type="submit"
-          disabled={isRedeeming || !isValidPoints}
+          disabled={loyalty.redeem.isPending || !isValidPoints}
           style={{
             padding: '10px 18px',
             borderRadius: 'var(--rp-radius)',
@@ -217,13 +139,13 @@ export function LoyaltyRedemption({ contactId, currency }: LoyaltyRedemptionProp
             fontSize: '14px',
             fontWeight: 600,
             fontFamily: 'var(--rp-font-family)',
-            cursor: isRedeeming || !isValidPoints ? 'not-allowed' : 'pointer',
-            opacity: isRedeeming || !isValidPoints ? 0.5 : 1,
+            cursor: loyalty.redeem.isPending || !isValidPoints ? 'not-allowed' : 'pointer',
+            opacity: loyalty.redeem.isPending || !isValidPoints ? 0.5 : 1,
             transition: 'opacity 0.2s',
             whiteSpace: 'nowrap',
           }}
         >
-          {isRedeeming ? 'Redeeming…' : 'Redeem'}
+          {loyalty.redeem.isPending ? 'Redeeming…' : 'Redeem'}
         </button>
       </form>
 

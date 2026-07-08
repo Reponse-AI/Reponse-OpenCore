@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { Header } from "@/components/Header";
 import { type Locale, parseLocale, getDictionary, LOCALE_COOKIE } from "@/lib/i18n";
+import { env } from "@/env";
 
 export const metadata: Metadata = {
   title: "Product Feed",
@@ -22,8 +23,8 @@ export default async function FeedPage() {
   const locale = await resolveLocale();
   const dict = await getDictionary(locale);
 
-  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-  const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+  const apiUrl = env.REPONSE_API_URL;
+  const workspaceId = env.REPONSE_WORKSPACE_ID;
 
   const jsonFeedUrl = `${apiUrl}/v1/feed?workspace_id=${workspaceId}`;
   const csvFeedUrl = `${apiUrl}/v1/feed?workspace_id=${workspaceId}&format=csv`;

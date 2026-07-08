@@ -6,37 +6,7 @@ import { formatPrice } from "@/lib/currency";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { PromoCodeForm } from "@/components/PromoCodeForm";
-
-/** Cart items enriched by the API with product data. */
-interface EnrichedCartItem {
-  id: string;
-  product_id: string;
-  variant_id?: string;
-  quantity: number;
-  price: number;
-  product?: {
-    title?: string;
-    handle?: string;
-    images?: string[];
-  };
-}
-
-/** Discount entry attached to the enriched cart response. */
-interface CartDiscount {
-  code: string;
-  savings: number;
-}
-
-/** The GET /v1/carts/:id response includes fields beyond the base SDK Cart type. */
-interface EnrichedCart {
-  items: EnrichedCartItem[];
-  subtotal: number;
-  currency: string;
-  applied_discounts: CartDiscount[];
-  automatic_discounts: CartDiscount[];
-  discount_total: number;
-  adjusted_total: number;
-}
+import type { StorefrontCart, StorefrontCartItem, StorefrontDiscount } from "@/types/storefront";
 
 export const metadata = {
   title: "Your Cart | Reponse Store",
@@ -44,13 +14,13 @@ export const metadata = {
 
 export default async function CartPage() {
   const cart = await getCart();
-  const enriched = (cart ?? {}) as Partial<EnrichedCart>;
-  const items: EnrichedCartItem[] = enriched.items ?? [];
+  const enriched = (cart ?? {}) as Partial<StorefrontCart>;
+  const items: StorefrontCartItem[] = enriched.items ?? [];
   const isEmpty = items.length === 0;
 
   // Discount data from the enriched GET /v1/carts/:id response
-  const appliedDiscounts: CartDiscount[] = enriched.applied_discounts ?? [];
-  const automaticDiscounts: CartDiscount[] = enriched.automatic_discounts ?? [];
+  const appliedDiscounts: StorefrontDiscount[] = enriched.applied_discounts ?? [];
+  const automaticDiscounts: StorefrontDiscount[] = enriched.automatic_discounts ?? [];
   const discountTotal = enriched.discount_total ?? 0;
   const adjustedTotal = enriched.adjusted_total ?? enriched.subtotal ?? 0;
   const subtotal = enriched.subtotal ?? 0;
@@ -66,7 +36,7 @@ export default async function CartPage() {
         {isEmpty ? (
           <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm">
             <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
-            <p className="text-gray-500 mb-8">Looks like you haven't added anything yet.</p>
+            <p className="text-gray-500 mb-8">Looks like you haven&apos;t added anything yet.</p>
             <Link href="/products" className="inline-block px-8 py-4 bg-black text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors">
               Continue Shopping
             </Link>

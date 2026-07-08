@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { getStoreConfig } from "@/lib/config";
+import { env } from "@/env";
 
 export async function GET(): Promise<NextResponse> {
   const config = await getStoreConfig();
   const storeName = config["--rp-brand-name"] || "Store";
 
-  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
-  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-  const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+  const siteUrl = env.SITE_URL;
+  const apiUrl = env.REPONSE_API_URL;
+  const workspaceId = env.REPONSE_WORKSPACE_ID;
 
   const body = `# ${storeName}
 

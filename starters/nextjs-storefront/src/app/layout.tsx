@@ -3,8 +3,10 @@ import { cookies, headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { Footer } from "@/components/Footer";
+import { QueryProvider } from "@/components/QueryProvider";
 import { getStoreConfig, themeToStyleVars } from "@/lib/config";
 import { type Locale, defaultLocale, parseLocale, getDictionary, LOCALE_COOKIE } from "@/lib/i18n";
+import { env } from "@/env";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -51,9 +53,9 @@ export default async function RootLayout({
   const locale = await resolveLocale();
   const dict = await getDictionary(locale);
 
-  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
-  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-  const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+  const siteUrl = env.SITE_URL;
+  const apiUrl = env.REPONSE_API_URL;
+  const workspaceId = env.REPONSE_WORKSPACE_ID;
 
   // ─── JSON-LD: Organization ─────────────────────────────────────────────────
   const orgJsonLd = {
@@ -120,18 +122,20 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `window.__ENV=${JSON.stringify({
-              REPONSE_API_URL: process.env.REPONSE_API_URL || "https://reponse.ai/api",
-              REPONSE_WORKSPACE_ID: process.env.REPONSE_WORKSPACE_ID || "",
+              REPONSE_API_URL: env.REPONSE_API_URL,
+              REPONSE_WORKSPACE_ID: env.REPONSE_WORKSPACE_ID,
               LOCALE: locale,
             })}`,
           }}
         />
-        {children}
-        <Footer storeName={storeName} dict={dict} />
-        {process.env.REPONSE_WORKSPACE_ID && (
+        <QueryProvider>
+          {children}
+          <Footer storeName={storeName} dict={dict} />
+        </QueryProvider>
+        {env.REPONSE_WORKSPACE_ID && (
           <Script
             src="https://reponse.ai/assets/sdk/reponse-widget.min.js"
-            data-reponse-workspace-id={process.env.REPONSE_WORKSPACE_ID}
+            data-reponse-workspace-id={env.REPONSE_WORKSPACE_ID}
             strategy="lazyOnload"
           />
         )}

@@ -6,6 +6,8 @@
  * requests across renders in the same server process.
  */
 
+import { env } from "@/env";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface StoreModuleConfig {
@@ -44,15 +46,15 @@ const DEFAULT_THEME: StoreTheme = {
   '--rp-color-error': '#dc2626',
   '--rp-radius': '0.75rem',
   '--rp-font-family': 'var(--font-geist-sans), system-ui, sans-serif',
-  '--rp-brand-name': process.env.STORE_NAME || 'Store',
+  '--rp-brand-name': env.STORE_NAME,
   '--rp-brand-logo': '',
   modules: {},
 };
 
 // ─── Config fetcher ───────────────────────────────────────────────────────────
 
-const apiUrl = process.env.REPONSE_API_URL || 'https://reponse.ai/api';
-const workspaceId = process.env.REPONSE_WORKSPACE_ID || '';
+const apiUrl = env.REPONSE_API_URL;
+const workspaceId = env.REPONSE_WORKSPACE_ID;
 
 let cachedConfig: StoreTheme | null = null;
 let cacheTime = 0;

@@ -5,6 +5,7 @@ import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-
 import { loadStripe } from '@stripe/stripe-js';
 import { FormEvent, useEffect, useState } from 'react';
 import { useCheckout } from './CheckoutProvider';
+import { useConfirmOrder } from '@/hooks/useCheckoutApi';
 
 // ─── Inner Payment Form ──────────────────────────────────────────────────────
 
@@ -14,6 +15,7 @@ function PaymentForm() {
   const { setStep, customerEmail, customerName, shippingAddress, marketId, cartId, apiUrl, apiKey, total, currency } = useCheckout();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const confirmOrder = useConfirmOrder();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -39,24 +41,17 @@ function PaymentForm() {
       }
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Confirm the order on our backend
-        await fetch(`${apiUrl}/v1/orders/confirm`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            cart_id: cartId,
-            payment_intent_id: paymentIntent.id,
-            customer_email: customerEmail,
-            customer_name: customerName,
-            shipping_address: shippingAddress,
-            market_id: marketId,
-          }),
+        await confirmOrder.mutateAsync({
+          apiUrl,
+          apiKey,
+          cartId,
+          paymentIntentId: paymentIntent.id,
+          customerEmail,
+          customerName,
+          shippingAddress,
+          marketId,
         });
 
-        // Redirect to success page
         window.location.href = `${window.location.origin}/checkout/success?payment_intent=${paymentIntent.id}`;
       }
     } catch (err) {
@@ -192,7 +187,7 @@ interface PaymentStepProps {
 }
 
 export function PaymentStep({ stripePublicKey }: PaymentStepProps) {
-  const { step, cartId, createPaymentIntent } = useCheckout();
+  const { step, createPaymentIntent } = useCheckout();
   const [stripePromise] = useState(() => loadStripe(stripePublicKey));
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

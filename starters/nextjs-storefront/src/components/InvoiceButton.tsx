@@ -18,9 +18,6 @@ export function InvoiceButton({
     text: string;
   } | null>(null);
 
-  // Only show for paid orders
-  if (financialStatus !== "paid") return null;
-
   const handleResendInvoice = useCallback(async () => {
     setMessage(null);
 
@@ -39,6 +36,9 @@ export function InvoiceButton({
       }
     });
   }, [orderId]);
+
+  // Only show for paid orders
+  if (financialStatus !== "paid") return null;
 
   return (
     <div>

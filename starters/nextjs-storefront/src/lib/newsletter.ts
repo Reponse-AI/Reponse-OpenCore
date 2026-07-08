@@ -4,9 +4,11 @@
 // Server action that proxies the subscriber capture call, adding the API key
 // that the client doesn't have access to.
 
-const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
-const apiKey = process.env.REPONSE_API_KEY || "";
+import { env } from "@/env";
+
+const apiUrl = env.REPONSE_API_URL;
+const workspaceId = env.REPONSE_WORKSPACE_ID;
+const apiKey = env.REPONSE_API_KEY;
 
 interface SubscribeResult {
   success: boolean;

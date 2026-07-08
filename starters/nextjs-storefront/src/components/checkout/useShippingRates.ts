@@ -1,7 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { ShippingRate } from './CheckoutProvider';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { readJsonResult } from '@/lib/api/response';
+import { queryKeys } from '@/lib/api/query-keys';
+import type { ShippingRate } from '@/types/storefront';
 
 interface UseShippingRatesParams {
   apiUrl: string;
@@ -129,77 +132,41 @@ export function useShippingRates({
   country,
   enabled,
 }: UseShippingRatesParams): UseShippingRatesResult {
-  const [rates, setRates] = useState<ShippingRate[]>([]);
-  const [selectedRate, setSelectedRate] = useState<ShippingRate | null>(null);
-  const [loadingRates, setLoadingRates] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedRateOverride, setSelectedRate] = useState<ShippingRate | null>(null);
+  const [manualError, setError] = useState<string | null>(null);
 
-  const fetchRates = useCallback(
-    async (signal?: AbortSignal) => {
-      if (!enabled) return;
+  const ratesQuery = useQuery({
+    queryKey: queryKeys.checkout.shippingRates(cartId, country),
+    enabled,
+    queryFn: async ({ signal }) => {
+      const params = new URLSearchParams({
+        country,
+        cart_id: cartId,
+      });
+      if (marketId) params.set('market_id', marketId);
 
-      await Promise.resolve();
-      if (signal?.aborted) return;
-
-      setLoadingRates(true);
-      setError(null);
-      setSelectedRate(null);
-
-      try {
-        const params = new URLSearchParams({
-          country,
-          cart_id: cartId,
-        });
-        if (marketId) params.set('market_id', marketId);
-
-        const res = await fetch(`${apiUrl}/v1/shipping/rates?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${apiKey}` },
-          signal,
-        });
-
-        if (!res.ok) {
-          const fallback = 'Failed to fetch shipping rates';
-          const errorPayload: unknown = await res.json().catch(() => null);
-          const message = isRecord(errorPayload) ? optionalString(errorPayload.error) : undefined;
-          throw new Error(message ?? fallback);
-        }
-
-        const payload: unknown = await res.json();
-        const nextRates = normalizeShippingRatesResponse(payload);
-        setRates(nextRates);
-        setSelectedRate(nextRates.length === 1 ? nextRates[0] : null);
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
-        setError(err instanceof Error ? err.message : 'Failed to load shipping rates');
-        setRates([]);
-      } finally {
-        if (!signal?.aborted) setLoadingRates(false);
-      }
+      const response = await fetch(`${apiUrl}/v1/shipping/rates?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        signal,
+      });
+      const payload = await readJsonResult<unknown>(response, 'Failed to fetch shipping rates');
+      return normalizeShippingRatesResponse(payload);
     },
-    [apiKey, apiUrl, cartId, country, enabled, marketId],
-  );
+  });
 
-  useEffect(() => {
-    if (!enabled) return;
-
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => {
-      void fetchRates(controller.signal);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      controller.abort();
-    };
-  }, [enabled, fetchRates]);
+  const rates = useMemo(() => ratesQuery.data ?? [], [ratesQuery.data]);
+  const selectedRate = selectedRateOverride ?? (rates.length === 1 ? rates[0] : null);
+  const error = manualError ?? (ratesQuery.error instanceof Error ? ratesQuery.error.message : null);
 
   return {
     rates,
     selectedRate,
     setSelectedRate,
-    loadingRates,
+    loadingRates: ratesQuery.isFetching,
     error,
     setError,
-    refetch: () => fetchRates(),
+    refetch: async () => {
+      await ratesQuery.refetch();
+    },
   };
 }

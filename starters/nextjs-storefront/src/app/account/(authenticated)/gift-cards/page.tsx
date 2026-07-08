@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getContactId, getSessionToken } from "@/lib/auth";
 import { formatPrice } from "@/lib/currency";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
+import { env } from "@/env";
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
 
@@ -26,8 +27,8 @@ interface GiftCard {
 // ─── Data fetcher ─────────────────────────────────────────────────────────────
 
 async function getGiftCards(contactId: string): Promise<GiftCard[]> {
-  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-  const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+  const apiUrl = env.REPONSE_API_URL;
+  const workspaceId = env.REPONSE_WORKSPACE_ID;
   const token = await getSessionToken();
   if (!token) return [];
 

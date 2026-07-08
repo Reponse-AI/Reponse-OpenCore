@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies, headers } from "next/headers";
+import { env } from "@/env";
 import { Header } from "@/components/Header";
 import { ImageGallery } from "@/components/ImageGallery";
 import { VariantSelector } from "@/components/VariantSelector";
@@ -12,6 +13,12 @@ import { getProductReviews } from "@/lib/reviews";
 import type { Review as ReviewType } from "@/lib/reviews";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
 import { type Locale, parseLocale, getDictionary, LOCALE_COOKIE } from "@/lib/i18n";
+import { isObjectRecord } from "@/lib/api/response";
+import type {
+  StorefrontOptionDefinition,
+  StorefrontProduct,
+  StorefrontProductVariant,
+} from "@/types/storefront";
 
 // ─── i18n helper ──────────────────────────────────────────────────────────────
 
@@ -35,30 +42,60 @@ async function resolveLocale(): Promise<Locale> {
 async function getProduct(slug: string) {
   try {
     const response = await reponse.catalog.listProducts({ query: { slug } });
-    return response.data?.data?.[0] ?? null;
+    return (response.data?.data?.[0] as StorefrontProduct | undefined) ?? null;
   } catch {
     return null;
   }
 }
 
+function buildOptionDefinitions(product: StorefrontProduct): StorefrontOptionDefinition[] {
+  const variants = product.variants ?? [];
+  const rawDefinitions = product.option_definitions;
+  if (!Array.isArray(rawDefinitions)) return [];
+
+  if (
+    rawDefinitions.every(
+      (option): option is StorefrontOptionDefinition =>
+        typeof option === "object" && option !== null && "name" in option && "values" in option,
+    )
+  ) {
+    return rawDefinitions;
+  }
+
+  return rawDefinitions
+    .filter((name): name is string => typeof name === "string")
+    .map((name, index) => {
+      const values = [
+        ...new Set(
+          variants
+            .map((variant) => variant.option_values?.[index])
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ];
+      return { name, position: index + 1, values };
+    });
+}
+
 /** Fetch product facts from the API (separate endpoint with ?include=facts). */
 async function getProductFacts(productId: string): Promise<Array<{ question: string; answer: string }>> {
   try {
-    const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-    const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+    const apiUrl = env.REPONSE_API_URL;
+    const workspaceId = env.REPONSE_WORKSPACE_ID;
     const res = await fetch(
       `${apiUrl}/v1/products/${productId}?include=facts&workspace_id=${workspaceId}`,
       { next: { revalidate: 300 } },
     );
     if (!res.ok) return [];
-    const data = await res.json() as Record<string, unknown>;
-    const facts = data.facts ?? (data.data as Record<string, unknown> | undefined)?.facts;
+    const data = (await res.json()) as unknown;
+    if (!isObjectRecord(data)) return [];
+    const nestedData = isObjectRecord(data.data) ? data.data : undefined;
+    const facts = data.facts ?? nestedData?.facts;
     if (!Array.isArray(facts)) return [];
     // API returns {topic, value}, map to {question, answer} for the component
     return facts
       .filter(
         (f): f is Record<string, unknown> =>
-          typeof f === "object" && f !== null && ("topic" in f || "question" in f),
+          isObjectRecord(f) && ("topic" in f || "question" in f),
       )
       .map((f) => ({
         question: String(f.question ?? f.topic ?? ""),
@@ -82,7 +119,7 @@ export async function generateMetadata({
 
   if (!product) return { title: "Product Not Found" };
 
-  const siteUrl = process.env.SITE_URL || "";
+  const siteUrl = env.SITE_URL;
   const canonicalUrl = `${siteUrl}/products/${slug}`;
   const plainDescription = product.seo_description || product.description?.replace(/<[^>]*>/g, "") || undefined;
 
@@ -114,46 +151,15 @@ export default async function ProductPage({
   const locale = await resolveLocale();
   const dict = await getDictionary(locale);
 
-  // Cast for fields that may not be in the SDK types yet
-  const p = product as Record<string, unknown>;
-
-  const variants: Array<{
-    id: string;
-    price?: number;
-    compare_at_price?: number;
-    inventory_quantity?: number;
-    option_values?: string[];
-    sku?: string;
-  }> = (p.variants as Array<{
-    id: string;
-    price?: number;
-    compare_at_price?: number;
-    inventory_quantity?: number;
-    option_values?: string[];
-    sku?: string;
-  }>) ?? [];
+  const variants: StorefrontProductVariant[] = product.variants ?? [];
 
   const hasOnlyDefaultVariant: boolean =
-    (p.has_only_default_variant as boolean) ?? variants.length <= 1;
-
-  // API returns option_definitions as string[] (option names).
-  // Rebuild structured {name, position, values} from variant option_values.
-  const rawOptionNames: string[] = (p.option_definitions as string[]) ?? [];
-  const optionDefinitions = rawOptionNames.map((name: string, idx: number) => {
-    const values = [
-      ...new Set(
-        variants
-          .map((v) => v.option_values?.[idx])
-          .filter(Boolean)
-      ),
-    ] as string[];
-    return { name, position: idx + 1, values };
-  });
-
-  const currency: string = (p.currency as string) || "EUR";
-  const images: string[] = (p.images as string[]) ?? [];
+    product.has_only_default_variant ?? variants.length <= 1;
+  const optionDefinitions = buildOptionDefinitions(product);
+  const currency: string = product.currency || "EUR";
+  const images: string[] = product.images ?? [];
   const isOnSale =
-    p.compare_at_price != null && (p.compare_at_price as number) > (p.price as number);
+    product.compare_at_price != null && product.compare_at_price > product.price;
 
   // ─── Fetch reviews (only if reviews module is active) ────────
   const storeConfig = await getStoreConfig();
@@ -170,7 +176,7 @@ export default async function ProductPage({
   const facts = await getProductFacts(product.id);
 
   // ─── JSON-LD ──────────────────────────────────────────────────
-  const siteUrl = process.env.SITE_URL || "";
+  const siteUrl = env.SITE_URL;
 
   // Build AggregateRating and Review structured data if reviews exist
   const aggregateRatingLd = hasReviews
@@ -320,7 +326,7 @@ export default async function ProductPage({
               currency={currency}
               inStock={product.in_stock ?? true}
               initialPrice={product.price}
-              initialCompareAtPrice={(p.compare_at_price as number | null) ?? null}
+              initialCompareAtPrice={product.compare_at_price ?? null}
             />
 
             {/* SKU */}

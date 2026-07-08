@@ -1,30 +1,18 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { addToCart } from "@/lib/cart";
+import { Check, LoaderCircle, ShoppingCart } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface OptionDefinition {
-  name: string;
-  position: number;
-  values: string[];
-}
-
-interface Variant {
-  id: string;
-  price?: number;
-  compare_at_price?: number;
-  inventory_quantity?: number;
-  option_values?: string[];
-  sku?: string;
-}
+import { useCartMutations } from "@/hooks/useCartMutations";
+import { useProductVariants } from "@/hooks/useProductVariants";
+import type {
+  StorefrontOptionDefinition,
+  StorefrontProductVariant,
+} from "@/types/storefront";
 
 interface VariantSelectorProps {
   productId: string;
-  variants: Variant[];
-  optionDefinitions: OptionDefinition[];
+  variants: StorefrontProductVariant[];
+  optionDefinitions: StorefrontOptionDefinition[];
   currency: string;
   inStock: boolean;
   /** Initial price (from the server-rendered product) */
@@ -45,87 +33,30 @@ export function VariantSelector({
   initialPrice,
   initialCompareAtPrice,
 }: VariantSelectorProps) {
-  const router = useRouter();
+  const {
+    selected,
+    displayVariant,
+    displayPrice,
+    displayCompareAt,
+    isOnSale,
+    variantInStock,
+    isValueAvailable,
+    selectOption,
+  } = useProductVariants({
+    variants,
+    optionDefinitions,
+    inStock,
+    initialPrice,
+    initialCompareAtPrice,
+  });
+  const { addItem } = useCartMutations();
+  const adding = addItem.isPending;
+  const added = addItem.isSuccess;
+  const error = addItem.error instanceof Error ? addItem.error.message : null;
 
-  // Build initial selected option map: { [optionName]: firstValue }
-  const buildDefaultSelections = () => {
-    const defaults: Record<string, string> = {};
-    optionDefinitions.forEach((opt) => {
-      if (opt.values.length > 0) defaults[opt.name] = opt.values[0];
-    });
-    return defaults;
-  };
-
-  const [selected, setSelected] = useState<Record<string, string>>(
-    buildDefaultSelections()
-  );
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Resolve which variant matches the current selections
-  const matchedVariant = useCallback((): Variant | undefined => {
-    if (variants.length === 0) return undefined;
-    if (optionDefinitions.length === 0) return variants[0];
-
-    return variants.find((v) =>
-      optionDefinitions.every((opt, idx) => {
-        const selectedVal = selected[opt.name];
-        return v.option_values?.[idx] === selectedVal;
-      })
-    );
-  }, [selected, variants, optionDefinitions])();
-
-  const displayVariant = matchedVariant ?? variants[0];
-  const displayPrice = displayVariant?.price ?? initialPrice;
-  const displayCompareAt =
-    displayVariant?.compare_at_price ?? initialCompareAtPrice ?? null;
-  const isOnSale = displayCompareAt != null && displayCompareAt > displayPrice;
-  const variantInStock =
-    inStock &&
-    (displayVariant?.inventory_quantity == null ||
-      displayVariant.inventory_quantity > 0);
-
-  // Check if a particular option value is available (has stock)
-  const isValueAvailable = (optionName: string, value: string) => {
-    if (variants.length === 0) return true;
-    return variants.some((v) => {
-      const optIdx = optionDefinitions.findIndex((o) => o.name === optionName);
-      if (optIdx === -1) return false;
-      if (v.option_values?.[optIdx] !== value) return false;
-      // All other currently selected options must also match
-      return optionDefinitions.every((opt, idx) => {
-        if (opt.name === optionName) return true;
-        const sel = selected[opt.name];
-        if (!sel) return true;
-        return v.option_values?.[idx] === sel;
-      });
-    });
-  };
-
-  const handleSelect = (optionName: string, value: string) => {
-    setSelected((prev) => ({ ...prev, [optionName]: value }));
-    setAdded(false);
-    setError(null);
-  };
-
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!variantInStock || adding) return;
-    setAdding(true);
-    setError(null);
-
-    try {
-      // Server Action — the cart ID lives in an httpOnly cookie, the single
-      // source of truth shared with the cart page and the header count.
-      await addToCart(productId, displayVariant?.id, 1);
-      setAdded(true);
-      // Refresh server state (cart count in header)
-      router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to add to cart");
-    } finally {
-      setAdding(false);
-    }
+    addItem.mutate({ productId, variantId: displayVariant?.id, quantity: 1 });
   };
 
   return (
@@ -169,7 +100,7 @@ export function VariantSelector({
                       key={value}
                       type="button"
                       disabled={!isAvailable}
-                      onClick={() => isAvailable && handleSelect(option.name, value)}
+                      onClick={() => isAvailable && selectOption(option.name, value)}
                       className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
                         isActive
                           ? "border-black bg-black text-white shadow-sm"
@@ -217,56 +148,17 @@ export function VariantSelector({
         >
           {adding ? (
             <>
-              <svg
-                className="animate-spin"
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-              </svg>
+              <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
               Adding…
             </>
           ) : added ? (
             <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              <Check className="size-5" aria-hidden="true" />
               Added to Cart
             </>
           ) : variantInStock ? (
             <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-              </svg>
+              <ShoppingCart className="size-5" aria-hidden="true" />
               Add to Cart
             </>
           ) : (

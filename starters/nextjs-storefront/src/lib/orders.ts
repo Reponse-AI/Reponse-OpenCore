@@ -3,69 +3,15 @@
 // ─── Orders Data Fetcher ──────────────────────────────────────────────────────
 // Direct fetch because the SDK hasn't been regenerated yet for these routes.
 
-const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+import type { Order } from "@/types/storefront";
+import { env } from "@/env";
+
+const apiUrl = env.REPONSE_API_URL;
+const workspaceId = env.REPONSE_WORKSPACE_ID;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface OrderLineItem {
-  id: string;
-  product_id: string;
-  variant_id: string | null;
-  title: string;
-  variant_title: string | null;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-  image_url: string | null;
-  sku: string | null;
-}
-
-export interface OrderAddress {
-  first_name: string | null;
-  last_name: string | null;
-  address1: string | null;
-  address2: string | null;
-  city: string | null;
-  province: string | null;
-  zip: string | null;
-  country: string | null;
-  phone: string | null;
-}
-
-export interface OrderFulfillment {
-  id: string;
-  status: string;
-  tracking_number: string | null;
-  tracking_url: string | null;
-  tracking_company: string | null;
-  created_at: string;
-}
-
-export interface Order {
-  id: string;
-  order_number: string | null;
-  status: string;
-  financial_status: string;
-  fulfillment_status: string | null;
-  currency: string;
-  subtotal_price: number;
-  total_tax: number;
-  total_shipping: number;
-  total_discounts: number;
-  total_price: number;
-  line_items: OrderLineItem[];
-  shipping_address: OrderAddress | null;
-  billing_address: OrderAddress | null;
-  fulfillments: OrderFulfillment[];
-  created_at: string;
-  updated_at: string;
-  cancelled_at: string | null;
-  cancel_reason: string | null;
-  note: string | null;
-  contact_id: string | null;
-  email: string | null;
-}
+export type { Order, OrderAddress, OrderFulfillment, OrderLineItem } from "@/types/storefront";
 
 // ─── Fetchers ─────────────────────────────────────────────────────────────────
 

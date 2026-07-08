@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { Header } from "@/components/Header";
 import { type Locale, parseLocale, getDictionary, LOCALE_COOKIE } from "@/lib/i18n";
+import { env } from "@/env";
 
 export const metadata: Metadata = {
   title: "Agentic Commerce Protocol (ACP)",
@@ -22,8 +23,8 @@ export default async function AcpPage() {
   const locale = await resolveLocale();
   const dict = await getDictionary(locale);
 
-  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-  const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+  const apiUrl = env.REPONSE_API_URL;
+  const workspaceId = env.REPONSE_WORKSPACE_ID;
 
   function t(key: string, fallback: string): string {
     return dict[key] ?? fallback;

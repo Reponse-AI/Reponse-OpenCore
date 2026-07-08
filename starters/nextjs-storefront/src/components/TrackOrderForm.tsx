@@ -1,19 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getEnv(): { apiUrl: string; workspaceId: string } {
-  if (typeof window !== "undefined" && (globalThis as Record<string, unknown>).__ENV) {
-    const env = (globalThis as Record<string, unknown>).__ENV as Record<string, string>;
-    return {
-      apiUrl: env.REPONSE_API_URL || "https://reponse.ai/api",
-      workspaceId: env.REPONSE_WORKSPACE_ID || "",
-    };
-  }
-  return { apiUrl: "https://reponse.ai/api", workspaceId: "" };
-}
+import { LoaderCircle } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { useTrackOrder } from "@/hooks/useTrackOrder";
+import type { OrderLookupResult } from "@/types/storefront";
 
 function statusColor(status: string): string {
   switch (status.toLowerCase()) {
@@ -39,23 +29,7 @@ function formatStatus(status: string): string {
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-// ─── Lookup result type (subset of Order returned by /v1/orders/lookup) ─────
-
-interface LookupResult {
-  id: string;
-  order_number: string | null;
-  financial_status: string;
-  fulfillment_status: string | null;
-  total_price: number;
-  currency: string;
-  email: string;
-  created_at: string;
-  shipping_address: Record<string, string | null> | null;
-  tracking_number: string | null;
-  tracking_url: string | null;
-}
-
-function OrderResult({ order }: { order: LookupResult }) {
+function OrderResult({ order }: { order: OrderLookupResult }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-8">
       {/* Header */}
@@ -207,49 +181,14 @@ function OrderResult({ order }: { order: LookupResult }) {
 export function TrackOrderForm() {
   const [email, setEmail] = useState("");
   const [orderNumber, setOrderNumber] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [order, setOrder] = useState<LookupResult | null>(null);
+  const orderLookup = useTrackOrder();
+  const error = orderLookup.error instanceof Error ? orderLookup.error.message : null;
+  const order = orderLookup.data ?? null;
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      setError(null);
-      setOrder(null);
-      setLoading(true);
-
-      try {
-        const { apiUrl, workspaceId } = getEnv();
-        const params = new URLSearchParams({
-          email,
-          order_number: orderNumber,
-        });
-        const res = await fetch(`${apiUrl}/v1/orders/lookup?${params}`, {
-          headers: { "x-workspace-id": workspaceId },
-        });
-
-        if (res.status === 404) {
-          setError(
-            "Order not found. Please check your email and order number."
-          );
-          return;
-        }
-
-        if (!res.ok) {
-          setError("Something went wrong. Please try again.");
-          return;
-        }
-
-        const data = (await res.json()) as LookupResult;
-        setOrder(data);
-      } catch {
-        setError("Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [email, orderNumber]
-  );
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    orderLookup.mutate({ email, orderNumber });
+  };
 
   return (
     <>
@@ -300,30 +239,12 @@ export function TrackOrderForm() {
 
           <button
             type="submit"
-            disabled={loading || !email || !orderNumber}
+            disabled={orderLookup.isPending || !email || !orderNumber}
             className="w-full h-11 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? (
+            {orderLookup.isPending ? (
               <>
-                <svg
-                  className="animate-spin h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
+                <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
                 Looking up…
               </>
             ) : (

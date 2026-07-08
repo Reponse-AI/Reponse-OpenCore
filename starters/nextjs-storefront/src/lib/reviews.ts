@@ -1,47 +1,20 @@
 // ─── Reviews Data Fetcher ─────────────────────────────────────────────────────
 // Direct fetch because the SDK hasn't been regenerated yet for these routes.
 
-const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+import type { ProductReviewsResponse, StoreReviewsResponse } from "@/types/storefront";
+import { env } from "@/env";
+
+const apiUrl = env.REPONSE_API_URL;
+const workspaceId = env.REPONSE_WORKSPACE_ID;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface Review {
-  id: string;
-  title: string | null;
-  content: string | null;
-  rating: number;
-  author_first_name: string | null;
-  author_last_initial: string | null;
-  verified_purchase: boolean;
-  media_urls: string[];
-  published_at: string;
-  response_content: string | null;
-  response_sent_at: string | null;
-  /** Present only on store-wide reviews */
-  product_id?: string;
-  /** Present only on store-wide reviews */
-  product_title_snapshot?: string;
-}
-
-export interface ReviewAggregates {
-  average: number;
-  count: number;
-  distribution: Record<1 | 2 | 3 | 4 | 5, number>;
-}
-
-export interface ProductReviewsResponse {
-  reviews: Review[];
-  aggregates: ReviewAggregates;
-  next_cursor: string | null;
-  has_more: boolean;
-}
-
-export interface StoreReviewsResponse {
-  reviews: Review[];
-  next_cursor: string | null;
-  has_more: boolean;
-}
+export type {
+  ProductReviewsResponse,
+  Review,
+  ReviewAggregates,
+  StoreReviewsResponse,
+} from "@/types/storefront";
 
 // ─── Fetchers ─────────────────────────────────────────────────────────────────
 

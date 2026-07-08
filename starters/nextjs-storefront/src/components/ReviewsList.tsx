@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import { StarRating } from "@/components/StarRating";
-import type {
-  Review,
-  ReviewAggregates,
-  ProductReviewsResponse,
-} from "@/lib/reviews";
+import { useProductReviews, type ReviewSort } from "@/hooks/useReviews";
+import type { Review, ReviewAggregates } from "@/types/storefront";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,23 +23,6 @@ function formatDate(iso: string): string {
     month: "short",
     day: "numeric",
   });
-}
-
-function getEnv(): { apiUrl: string; workspaceId: string } {
-  if (typeof window !== "undefined" && (globalThis as Record<string, unknown>).__ENV) {
-    const env = (globalThis as Record<string, unknown>).__ENV as Record<
-      string,
-      string
-    >;
-    return {
-      apiUrl: env.REPONSE_API_URL || "https://reponse.ai/api",
-      workspaceId: env.REPONSE_WORKSPACE_ID || "",
-    };
-  }
-  return {
-    apiUrl: "https://reponse.ai/api",
-    workspaceId: "",
-  };
 }
 
 // ─── Distribution bar ────────────────────────────────────────────────────────
@@ -178,69 +158,20 @@ export function ReviewsList({
   initialNextCursor,
   initialHasMore,
 }: ReviewsListProps) {
-  const [reviews, setReviews] = useState<Review[]>(initialReviews);
-  const [nextCursor, setNextCursor] = useState(initialNextCursor);
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [loading, setLoading] = useState(false);
-  const [sort, setSort] = useState<"recent" | "rating">("recent");
-
-  const loadMore = useCallback(async () => {
-    if (!nextCursor || loading) return;
-    setLoading(true);
-
-    try {
-      const { apiUrl, workspaceId } = getEnv();
-      const params = new URLSearchParams({
-        limit: "10",
-        cursor: nextCursor,
-        sort,
-      });
-      const res = await fetch(
-        `${apiUrl}/v1/products/${productId}/reviews?${params}`,
-        { headers: { "x-workspace-id": workspaceId } }
-      );
-
-      if (res.ok) {
-        const data = (await res.json()) as ProductReviewsResponse;
-        setReviews((prev) => [...prev, ...data.reviews]);
-        setNextCursor(data.next_cursor);
-        setHasMore(data.has_more);
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setLoading(false);
-    }
-  }, [nextCursor, loading, sort, productId]);
-
-  const handleSortChange = useCallback(
-    async (newSort: "recent" | "rating") => {
-      if (newSort === sort) return;
-      setSort(newSort);
-      setLoading(true);
-
-      try {
-        const { apiUrl, workspaceId } = getEnv();
-        const params = new URLSearchParams({ limit: "10", sort: newSort });
-        const res = await fetch(
-          `${apiUrl}/v1/products/${productId}/reviews?${params}`,
-          { headers: { "x-workspace-id": workspaceId } }
-        );
-
-        if (res.ok) {
-          const data = (await res.json()) as ProductReviewsResponse;
-          setReviews(data.reviews);
-          setNextCursor(data.next_cursor);
-          setHasMore(data.has_more);
-        }
-      } catch {
-        // silently fail
-      } finally {
-        setLoading(false);
-      }
-    },
-    [sort, productId]
+  const [sort, setSort] = useState<ReviewSort>("recent");
+  const reviewsQuery = useProductReviews({
+    productId,
+    sort,
+    initialReviews,
+    initialNextCursor,
+    initialHasMore,
+  });
+  const reviews = useMemo(
+    () => reviewsQuery.data?.pages.flatMap((page) => page.reviews) ?? [],
+    [reviewsQuery.data],
   );
+  const loading = reviewsQuery.isFetching || reviewsQuery.isFetchingNextPage;
+  const hasMore = Boolean(reviewsQuery.hasNextPage);
 
   return (
     <section id="reviews" className="mt-16">
@@ -290,9 +221,7 @@ export function ReviewsList({
               <select
                 id="review-sort"
                 value={sort}
-                onChange={(e) =>
-                  handleSortChange(e.target.value as "recent" | "rating")
-                }
+                onChange={(e) => setSort(e.target.value as ReviewSort)}
                 className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
               >
                 <option value="recent">Most recent</option>
@@ -312,7 +241,7 @@ export function ReviewsList({
           {hasMore && (
             <div className="text-center mt-8">
               <button
-                onClick={loadMore}
+                onClick={() => reviewsQuery.fetchNextPage()}
                 disabled={loading}
                 className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50"
               >

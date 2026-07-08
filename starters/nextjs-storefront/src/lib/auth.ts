@@ -1,6 +1,8 @@
 "use server";
 
 import { cookies } from "next/headers";
+import type { AuthenticatedContact, ProfileUpdatePayload } from "@/types/storefront";
+import { env } from "@/env";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -9,17 +11,7 @@ const CONTACT_COOKIE = "reponse_contact_id";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface AuthenticatedContact {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
-  created_at: string;
-  lifecycle_stage: string | null;
-}
+export type { AuthenticatedContact, ProfileUpdatePayload } from "@/types/storefront";
 
 // ─── Session cookie helpers ───────────────────────────────────────────────────
 
@@ -42,7 +34,7 @@ export async function setSession(
     httpOnly: true,
     path: "/",
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
     maxAge: COOKIE_MAX_AGE,
   };
 
@@ -60,8 +52,8 @@ export async function clearSession(): Promise<void> {
 
 /** Sign in as the workspace's demo customer (no OTP). Server action. */
 export async function demoLogin(): Promise<{ ok: boolean; error?: string }> {
-  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-  const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+  const apiUrl = env.REPONSE_API_URL;
+  const workspaceId = env.REPONSE_WORKSPACE_ID;
   if (!workspaceId) return { ok: false, error: "Workspace not configured" };
 
   try {
@@ -88,7 +80,7 @@ export async function getAuthenticatedContact(): Promise<AuthenticatedContact | 
   const token = await getSessionToken();
   if (!token) return null;
 
-  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
+  const apiUrl = env.REPONSE_API_URL;
 
   try {
     const res = await fetch(`${apiUrl}/v1/me`, {
@@ -107,19 +99,13 @@ export async function getAuthenticatedContact(): Promise<AuthenticatedContact | 
 
 // ─── Profile Update ───────────────────────────────────────────────────────────
 
-export interface ProfileUpdatePayload {
-  first_name?: string;
-  last_name?: string;
-  phone?: string;
-}
-
 export async function updateProfile(
   updates: ProfileUpdatePayload
 ): Promise<boolean> {
   const token = await getSessionToken();
   if (!token) return false;
 
-  const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
+  const apiUrl = env.REPONSE_API_URL;
 
   try {
     const res = await fetch(`${apiUrl}/v1/me`, {

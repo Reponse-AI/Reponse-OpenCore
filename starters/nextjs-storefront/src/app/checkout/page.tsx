@@ -3,12 +3,11 @@ import { reponse } from "@/lib/reponse";
 import { getCartId } from "@/lib/cart";
 import { redirect } from "next/navigation";
 import { EmbeddedCheckout } from "./embedded-checkout";
+import { env } from "@/env";
 
 export const metadata = {
   title: "Checkout | Reponse Store",
 };
-
-const CHECKOUT_MODE = process.env.CHECKOUT_MODE || "embedded";
 
 export default async function CheckoutPage() {
   const cartId = await getCartId();
@@ -18,16 +17,16 @@ export default async function CheckoutPage() {
   }
 
   // Embedded checkout (default) — Stripe Elements on the storefront
-  if (CHECKOUT_MODE === "embedded") {
+  if (env.CHECKOUT_MODE === "embedded") {
     return (
       <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
         <Header />
         <EmbeddedCheckout
           cartId={cartId}
-          marketId={process.env.MARKET_ID || ""}
-          apiUrl={process.env.REPONSE_API_URL || ""}
-          apiKey={process.env.REPONSE_API_KEY || ""}
-          stripePublishableKey={process.env.STRIPE_PUBLISHABLE_KEY || ""}
+          marketId={env.MARKET_ID}
+          apiUrl={env.REPONSE_API_URL}
+          apiKey={env.REPONSE_API_KEY}
+          stripePublishableKey={env.STRIPE_PUBLISHABLE_KEY}
         />
       </div>
     );
@@ -41,12 +40,12 @@ export default async function CheckoutPage() {
     // market_id is accepted by the API but not yet in the SDK's
     // CreateCheckoutInput type — spread to bypass strict typing until
     // the OpenAPI spec is regenerated.
-    const marketId = process.env.MARKET_ID || undefined;
+    const marketId = env.MARKET_ID || undefined;
     const response = await reponse.cart.createCheckout({
       body: {
         cart_id: cartId,
-        success_url: `${process.env.SITE_URL || "http://localhost:3000"}/order/success`,
-        cancel_url: `${process.env.SITE_URL || "http://localhost:3000"}/cart`,
+        success_url: `${env.SITE_URL}/order/success`,
+        cancel_url: `${env.SITE_URL}/cart`,
         ...(marketId ? { market_id: marketId } : {}),
       } as Parameters<typeof reponse.cart.createCheckout>[0] extends { body?: infer B } ? B : never
     });

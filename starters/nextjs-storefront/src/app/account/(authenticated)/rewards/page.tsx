@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { env } from "@/env";
 import { getContactId } from "@/lib/auth";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
 import { getLoyaltyProgram, getLoyaltyBalance } from "@/lib/loyalty";
@@ -33,7 +34,7 @@ export default async function AccountRewardsPage() {
     notFound();
   }
 
-  const currency = process.env.MARKET_CURRENCY || "EUR";
+  const currency = env.MARKET_CURRENCY;
 
   // Calculate tier progress
   let nextTier: (typeof program.tiers)[number] | null = null;

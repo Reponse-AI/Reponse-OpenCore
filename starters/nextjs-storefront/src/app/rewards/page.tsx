@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { env } from "@/env";
 import { Header } from "@/components/Header";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
 import { getLoyaltyProgram } from "@/lib/loyalty";
@@ -56,7 +57,7 @@ export default async function RewardsPage() {
   }
 
   const brandName = config["--rp-brand-name"];
-  const currency = process.env.MARKET_CURRENCY || "EUR";
+  const currency = env.MARKET_CURRENCY;
 
   return (
     <div

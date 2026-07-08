@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { StarRating } from "@/components/StarRating";
-import type { Review, StoreReviewsResponse } from "@/lib/reviews";
+import { useStoreReviews } from "@/hooks/useReviews";
+import type { Review } from "@/types/storefront";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -13,23 +14,6 @@ function formatDate(iso: string): string {
     month: "short",
     day: "numeric",
   });
-}
-
-function getEnv(): { apiUrl: string; workspaceId: string } {
-  if (typeof window !== "undefined" && (globalThis as Record<string, unknown>).__ENV) {
-    const env = (globalThis as Record<string, unknown>).__ENV as Record<
-      string,
-      string
-    >;
-    return {
-      apiUrl: env.REPONSE_API_URL || "https://reponse.ai/api",
-      workspaceId: env.REPONSE_WORKSPACE_ID || "",
-    };
-  }
-  return {
-    apiUrl: "https://reponse.ai/api",
-    workspaceId: "",
-  };
 }
 
 // ─── Single store review card ────────────────────────────────────────────────
@@ -136,34 +120,16 @@ export function StoreReviewsList({
   initialNextCursor,
   initialHasMore,
 }: StoreReviewsListProps) {
-  const [reviews, setReviews] = useState<Review[]>(initialReviews);
-  const [nextCursor, setNextCursor] = useState(initialNextCursor);
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [loading, setLoading] = useState(false);
-
-  const loadMore = useCallback(async () => {
-    if (!nextCursor || loading) return;
-    setLoading(true);
-
-    try {
-      const { apiUrl, workspaceId } = getEnv();
-      const params = new URLSearchParams({ limit: "10", cursor: nextCursor });
-      const res = await fetch(`${apiUrl}/v1/reviews?${params}`, {
-        headers: { "x-workspace-id": workspaceId },
-      });
-
-      if (res.ok) {
-        const data = (await res.json()) as StoreReviewsResponse;
-        setReviews((prev) => [...prev, ...data.reviews]);
-        setNextCursor(data.next_cursor);
-        setHasMore(data.has_more);
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setLoading(false);
-    }
-  }, [nextCursor, loading]);
+  const reviewsQuery = useStoreReviews({
+    initialReviews,
+    initialNextCursor,
+    initialHasMore,
+  });
+  const reviews = useMemo(
+    () => reviewsQuery.data?.pages.flatMap((page) => page.reviews) ?? [],
+    [reviewsQuery.data],
+  );
+  const loading = reviewsQuery.isFetching || reviewsQuery.isFetchingNextPage;
 
   return (
     <div>
@@ -173,10 +139,10 @@ export function StoreReviewsList({
         ))}
       </div>
 
-      {hasMore && (
+      {reviewsQuery.hasNextPage && (
         <div className="text-center mt-8">
           <button
-            onClick={loadMore}
+            onClick={() => reviewsQuery.fetchNextPage()}
             disabled={loading}
             className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50"
           >

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { reponse } from "@/lib/reponse";
+import { env } from "@/env";
 
 export const metadata: Metadata = {
   title: "Collections",
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CollectionsPage() {
-  const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+  const siteUrl = env.SITE_URL;
 
   let collections: Array<{
     id: string;

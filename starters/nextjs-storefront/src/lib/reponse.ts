@@ -1,22 +1,7 @@
 import { Reponse, client } from "@reponseai/sdk";
+import { getStorefrontEnv } from "@/lib/api/env";
 
-// ─── Resolve env vars (works on both server and client) ─────────────────────
-// Server: reads from process.env (server-only vars, available at runtime)
-// Client: reads from window.__ENV (injected by layout.tsx at render time)
-const isServer = typeof window === "undefined";
-
-const env = isServer
-  ? {
-      REPONSE_WORKSPACE_ID: process.env.REPONSE_WORKSPACE_ID || "",
-      REPONSE_API_URL: process.env.REPONSE_API_URL || "https://reponse.ai/api",
-    }
-  : (((globalThis as Record<string, unknown>).__ENV as Record<string, string> | undefined) ?? {
-      REPONSE_WORKSPACE_ID: "",
-      REPONSE_API_URL: "https://reponse.ai/api",
-    });
-
-const workspaceId: string = env.REPONSE_WORKSPACE_ID;
-const apiUrl: string = env.REPONSE_API_URL;
+const { apiUrl, workspaceId } = getStorefrontEnv();
 
 // Initialize SDK — uses x-workspace-id for public auth (no Bearer token).
 export const reponse = new Reponse({

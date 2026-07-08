@@ -1,6 +1,10 @@
 'use client';
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { calculateCheckoutTotal, mapCartItemsForCheckout } from '@/lib/checkout/totals';
+import type { ShippingRate } from '@/types/storefront';
+
+export type { ShippingRate } from '@/types/storefront';
 
 interface RawCartItem {
   id: string;
@@ -19,17 +23,6 @@ interface RawCartItem {
 }
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
-
-export interface ShippingRate {
-  id: string;
-  profile_id?: string;
-  profile_name?: string;
-  name: string;
-  price: number;
-  currency: string;
-  delivery_estimate?: { min_days: number | null; max_days: number | null };
-  is_free: boolean;
-}
 
 export interface CheckoutState {
   step: 'contact' | 'shipping' | 'payment';
@@ -124,7 +117,11 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
   const recalculate = useCallback((partial: Partial<CheckoutState>) => {
     setState(prev => {
       const next = { ...prev, ...partial };
-      next.total = Math.max(0, next.subtotal - next.discountAmount + next.shippingCost);
+      next.total = calculateCheckoutTotal({
+        subtotal: next.subtotal,
+        discountAmount: next.discountAmount,
+        shippingCost: next.shippingCost,
+      });
       return next;
     });
   }, []);
@@ -157,15 +154,24 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
 
         if (cancelled) return;
 
-        const items = (cart.items || []).map((item: RawCartItem) => ({
-          id: item.id,
-          title: item.product.title || '',
-          variant_title: item.product.title || '',
-          quantity: item.quantity || 1,
-          unit_price: item.product.price ?? item.price ?? 0,
-          line_price: (item.price ?? 0) * (item.quantity || 1),
-          image_url: item.product.images[0] || '',
-        }));
+        const items = mapCartItemsForCheckout({
+          id: cartId,
+          items: (cart.items || []).map((item: RawCartItem) => ({
+            id: item.id,
+            product_id: item.product_id,
+            variant_id: item.variant_id,
+            quantity: item.quantity,
+            price: item.product.price ?? item.price ?? 0,
+            product: {
+              id: item.product.id,
+              title: item.product.title,
+              handle: item.product.handle,
+              images: item.product.images,
+            },
+          })),
+          subtotal: cart.subtotal ?? 0,
+          currency: cart.currency || 'EUR',
+        });
 
         const subtotal = items.reduce((acc: number, i: CheckoutState['items'][number]) => acc + i.line_price, 0);
 

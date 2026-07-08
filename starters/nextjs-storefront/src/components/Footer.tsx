@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ObfuscatedLink } from "@/components/seo/ObfuscatedLink";
+import { getStorefrontEnv } from "@/lib/api/env";
 import { subscribeNewsletter } from "@/lib/newsletter";
 
 type SubscribeStatus = "idle" | "loading" | "success" | "error";
@@ -32,14 +33,7 @@ export function Footer({ storeName = "Store", dict }: FooterProps) {
     { labelKey: "footer.legalNotice", fallback: "Legal Notice", href: "/policies/legal-notice" },
   ];
 
-  // Read env for feed link. The SSR pass must resolve the same values as the
-  // client (__ENV), otherwise the feed link renders only on one side and
-  // hydration fails.
-  const env = typeof window !== "undefined"
-    ? ((globalThis as unknown as { __ENV?: { REPONSE_API_URL?: string; REPONSE_WORKSPACE_ID?: string } }).__ENV ?? {})
-    : { REPONSE_API_URL: process.env.REPONSE_API_URL, REPONSE_WORKSPACE_ID: process.env.REPONSE_WORKSPACE_ID };
-  const apiUrl = env.REPONSE_API_URL || "https://reponse.ai/api";
-  const workspaceId = env.REPONSE_WORKSPACE_ID || "";
+  const { apiUrl, workspaceId } = getStorefrontEnv();
 
   async function handleSubscribe(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

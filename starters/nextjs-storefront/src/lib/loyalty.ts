@@ -2,63 +2,25 @@
 // Direct fetch because the SDK hasn't been regenerated yet for these routes.
 
 import { getSessionToken } from "./auth";
+import type {
+  LoyaltyBalance,
+  LoyaltyProgram,
+  RedeemResult,
+  ReferralInfo,
+} from "@/types/storefront";
+import { env } from "@/env";
 
-const apiUrl = process.env.REPONSE_API_URL || "https://reponse.ai/api";
-const workspaceId = process.env.REPONSE_WORKSPACE_ID || "";
+const apiUrl = env.REPONSE_API_URL;
+const workspaceId = env.REPONSE_WORKSPACE_ID;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface LoyaltyEarningRule {
-  id: string;
-  event: string;
-  points: number;
-  label: string;
-  description: string | null;
-  multiplier: number | null;
-}
-
-export interface LoyaltyTier {
-  id: string;
-  name: string;
-  min_points: number;
-  multiplier: number;
-  perks: string[];
-  color: string | null;
-}
-
-export interface LoyaltyProgram {
-  points_name: string;
-  points_currency_ratio: number;
-  referral_enabled: boolean;
-  is_active: boolean;
-  tiers: LoyaltyTier[];
-  earning_rules: LoyaltyEarningRule[];
-}
-
-export interface LoyaltyBalance {
-  points_balance: number;
-  points_earned_total: number;
-  tier: LoyaltyTier | null;
-  referral_code: string | null;
-  currency_value: number;
-}
-
-export interface ReferralInfo {
-  referral_code: string;
-  referral_url: string;
-  stats: {
-    pending: number;
-    converted: number;
-    total_earned: number;
-  };
-}
-
-export interface RedeemResult {
-  success: boolean;
-  error?: string;
-  points_redeemed?: number;
-  currency_value?: number;
-}
+export type {
+  LoyaltyBalance,
+  LoyaltyEarningRule,
+  LoyaltyProgram,
+  LoyaltyTier,
+  RedeemResult,
+  ReferralInfo,
+} from "@/types/storefront";
 
 // ─── Fetchers ─────────────────────────────────────────────────────────────────
 
