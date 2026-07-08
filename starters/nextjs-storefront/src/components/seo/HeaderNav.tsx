@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ObfuscatedLink } from "@/components/seo/ObfuscatedLink";
-import { useCart } from "@/components/CartProvider";
 
 interface HeaderNavProps {
+  itemCount: number;
   dict?: Record<string, string>;
 }
 
@@ -20,9 +20,8 @@ function t(dict: Record<string, string> | undefined, key: string, fallback: stri
  * - Desktop: full nav bar with links, search, account, cart
  * - Mobile: cart icon + hamburger → slide-out panel
  */
-export function HeaderNav({ dict }: HeaderNavProps) {
+export function HeaderNav({ itemCount, dict }: HeaderNavProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { itemCount } = useCart();
 
   return (
     <>

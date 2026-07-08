@@ -4,9 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { Footer } from "@/components/Footer";
 import { QueryProvider } from "@/components/QueryProvider";
-import { Header } from "@/components/Header";
 import { getStoreConfig, themeToStyleVars } from "@/lib/config";
-import { type Locale, parseLocale, getDictionary, LOCALE_COOKIE } from "@/lib/i18n";
+import { type Locale, defaultLocale, parseLocale, getDictionary, LOCALE_COOKIE } from "@/lib/i18n";
 import { env } from "@/env";
 import "./globals.css";
 
@@ -130,12 +129,6 @@ export default async function RootLayout({
           }}
         />
         <QueryProvider>
-          <Header
-            storeName={storeName}
-            logoUrl={config["--rp-brand-logo"] || ""}
-            locale={locale}
-            dict={dict}
-          />
           {children}
           <Footer storeName={storeName} dict={dict} />
         </QueryProvider>

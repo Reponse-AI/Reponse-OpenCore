@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Header } from "@/components/Header";
 import { TrackOrderForm } from "@/components/TrackOrderForm";
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 export default function TrackPage() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
+      <Header />
 
       <main className="flex-grow max-w-2xl w-full mx-auto px-8 py-10">
         {/* Breadcrumb */}

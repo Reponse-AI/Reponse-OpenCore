@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Header } from "@/components/Header";
 import { getStoreReviews } from "@/lib/reviews";
 import { StoreReviewsList } from "@/components/StoreReviewsList";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
@@ -28,6 +29,7 @@ export default async function ReviewsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
+      <Header />
 
       <main className="flex-grow max-w-4xl w-full mx-auto px-8 py-10">
         {/* Breadcrumb */}
