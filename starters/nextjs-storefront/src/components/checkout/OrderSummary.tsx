@@ -5,6 +5,7 @@ import { DiscountInput } from './DiscountInput';
 import { GiftCardInput } from './GiftCardInput';
 import { LoyaltyRedemption } from './LoyaltyRedemption';
 import { formatPrice } from '@/lib/currency';
+import { getDistinctVariantTitle } from '@/lib/product-title';
 
 interface OrderSummaryProps {
   contactId?: string;
@@ -69,8 +70,11 @@ export function OrderSummary({ contactId }: OrderSummaryProps) {
 
       {/* Cart Items */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {items.map((item) => (
-          <div key={item.id} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        {items.map((item) => {
+          const variantTitle = getDistinctVariantTitle(item.title, item.variant_title);
+
+          return (
+            <div key={item.id} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <div style={{
               width: '56px',
               height: '56px',
@@ -127,12 +131,12 @@ export function OrderSummary({ contactId }: OrderSummaryProps) {
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
               }}>{item.title}</div>
-              {item.variant_title && (
+              {variantTitle && (
                 <div style={{
                   fontSize: '12px',
                   color: 'var(--rp-color-text-secondary)',
                   marginTop: '2px',
-                }}>{item.variant_title}</div>
+                }}>{variantTitle}</div>
               )}
             </div>
             <div style={{
@@ -141,8 +145,9 @@ export function OrderSummary({ contactId }: OrderSummaryProps) {
               color: 'var(--rp-color-text)',
               whiteSpace: 'nowrap',
             }}>{formatPrice(item.line_price, currency)}</div>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
       <hr style={dividerStyle} />

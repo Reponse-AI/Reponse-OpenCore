@@ -76,6 +76,7 @@ export interface StorefrontCartItem {
   id: string;
   product_id: string;
   variant_id?: string | null;
+  variant_title?: string | null;
   quantity: number;
   price: number;
   product?: StorefrontProductSummary;
@@ -338,7 +339,7 @@ export interface ShippingRate {
 export interface CheckoutSummaryItem {
   id: string;
   title: string;
-  variant_title: string;
+  variant_title: string | null;
   quantity: number;
   unit_price: number;
   line_price: number;

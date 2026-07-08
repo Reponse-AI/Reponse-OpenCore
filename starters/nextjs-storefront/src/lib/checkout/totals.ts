@@ -18,7 +18,7 @@ export function mapCartItemsForCheckout(cart: StorefrontCart): CheckoutSummaryIt
     return {
       id: item.id,
       title,
-      variant_title: title,
+      variant_title: item.variant_title ?? null,
       quantity: item.quantity || 1,
       unit_price: item.product?.id ? item.price : item.price,
       line_price: item.price * (item.quantity || 1),

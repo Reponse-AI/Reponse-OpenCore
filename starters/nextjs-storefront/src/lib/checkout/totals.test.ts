@@ -15,6 +15,7 @@ describe("checkout totals", () => {
           id: "line_1",
           product_id: "prod_1",
           variant_id: "var_1",
+          variant_title: "Blue / Large",
           quantity: 2,
           price: 8,
           product: {
@@ -33,12 +34,38 @@ describe("checkout totals", () => {
       {
         id: "line_1",
         title: "Tee",
-        variant_title: "Tee",
+        variant_title: "Blue / Large",
         quantity: 2,
         unit_price: 8,
         line_price: 16,
         image_url: "https://example.com/tee.jpg",
       },
     ]);
+  });
+
+  it("preserves a missing variant title", () => {
+    const cart: StorefrontCart = {
+      id: "cart_1",
+      items: [
+        {
+          id: "line_1",
+          product_id: "prod_1",
+          variant_id: null,
+          variant_title: null,
+          quantity: 1,
+          price: 8,
+          product: {
+            id: "prod_1",
+            title: "Tee",
+            handle: "tee",
+            images: [],
+          },
+        },
+      ],
+      subtotal: 8,
+      currency: "EUR",
+    };
+
+    expect(mapCartItemsForCheckout(cart)[0]?.variant_title).toBeNull();
   });
 });

@@ -11,7 +11,8 @@ interface RawCartItem {
   quantity: number;
   price: number;
   product_id: string;
-  variant_id: string;
+  variant_id: string | null;
+  variant_title: string | null;
   product: {
     id: string;
     title: string;
@@ -44,7 +45,7 @@ export interface CheckoutState {
   items: Array<{
     id: string;
     title: string;
-    variant_title: string;
+    variant_title: string | null;
     quantity: number;
     unit_price: number;
     line_price: number;
@@ -160,6 +161,7 @@ export function CheckoutProvider({ cartId, marketId, apiUrl, apiKey, children }:
             id: item.id,
             product_id: item.product_id,
             variant_id: item.variant_id,
+            variant_title: item.variant_title,
             quantity: item.quantity,
             price: item.product.price ?? item.price ?? 0,
             product: {

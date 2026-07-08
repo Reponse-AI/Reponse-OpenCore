@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/currency";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { PromoCodeForm } from "@/components/PromoCodeForm";
+import { getDistinctVariantTitle } from "@/lib/product-title";
 import type { StorefrontCart, StorefrontCartItem, StorefrontDiscount } from "@/types/storefront";
 
 export const metadata = {
@@ -45,8 +46,12 @@ export default async function CartPage() {
           <div className="flex flex-col lg:flex-row gap-12">
             {/* Items List */}
             <div className="flex-grow flex flex-col gap-6">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              {items.map((item) => {
+                const productTitle = item.product?.title || `Product #${(item.product_id || "").slice(0, 8)}`;
+                const variantTitle = getDistinctVariantTitle(productTitle, item.variant_title);
+
+                return (
+                  <div key={item.id} className="flex gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                   <div className="w-24 h-24 bg-gray-100 rounded-xl relative overflow-hidden flex-shrink-0">
                     {item.product?.images?.[0] ? (
                       <Image src={item.product.images[0]} alt={item.product.title || "Product"} fill className="object-cover" />
@@ -57,9 +62,14 @@ export default async function CartPage() {
                   
                   <div className="flex flex-col flex-grow">
                     <div className="flex justify-between items-start mb-2">
-                      <Link href={`/products/${item.product?.handle || item.product_id}`} className="font-semibold text-lg hover:underline">
-                        {item.product?.title || `Product #${(item.product_id || "").slice(0, 8)}`}
-                      </Link>
+                      <div className="min-w-0">
+                        <Link href={`/products/${item.product?.handle || item.product_id}`} className="block truncate text-sm font-semibold hover:underline">
+                          {productTitle}
+                        </Link>
+                        {variantTitle && (
+                          <div className="mt-0.5 text-xs text-gray-500">{variantTitle}</div>
+                        )}
+                      </div>
                       <span className="font-bold">{formatPrice(item.price, currency)}</span>
                     </div>
                     
@@ -94,8 +104,9 @@ export default async function CartPage() {
                       </form>
                     </div>
                   </div>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Summary */}
