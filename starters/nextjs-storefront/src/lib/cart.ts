@@ -5,6 +5,7 @@ import type { Cart } from "@reponseai/sdk";
 import { reponse } from "./reponse";
 import { getApiErrorMessage, type SdkResult } from "@/lib/api/response";
 import type { PromoResult } from "@/types/storefront";
+import type { CartSummary } from "@/types/storefront";
 import { env } from "@/env";
 
 const CART_COOKIE_NAME = "reponse_cart_id";
@@ -71,6 +72,29 @@ export async function getCart() {
   return cart ?? null;
 }
 
+function toCartSummary(cart: Cart): CartSummary {
+  const items = (cart.items ?? []).map((item) => ({
+    id: item.id,
+    product_id: item.product_id,
+    variant_id: item.variant_id ?? null,
+    quantity: item.quantity,
+    price: item.price,
+  }));
+
+  return {
+    id: cart.id,
+    item_count: items.reduce((total, item) => total + item.quantity, 0),
+    subtotal: cart.subtotal,
+    currency: cart.currency,
+    items,
+  };
+}
+
+export async function getCartSummary(): Promise<CartSummary | null> {
+  const cart = await getCart();
+  return cart ? toCartSummary(cart) : null;
+}
+
 export async function addToCart(productId: string, variantId?: string, quantity: number = 1) {
   const cartId = await getCartId();
 
@@ -84,7 +108,7 @@ export async function addToCart(productId: string, variantId?: string, quantity:
         items: [{ product_id: productId, variant_id: variantId, quantity }],
         ...(marketCurrency ? { currency: marketCurrency } : {}),
       }
-    })) as SdkResult<Cart>;
+    })) as SdkResult<CartSummary>;
     if (error || !cart?.id) {
       throw new Error(getApiErrorMessage(error, "Failed to create cart"));
     }
@@ -93,7 +117,7 @@ export async function addToCart(productId: string, variantId?: string, quantity:
   }
 
   // Add item to existing cart
-  const { error, response } = (await reponse.cart.addItem({
+  const { data: cart, error, response } = (await reponse.cart.addItem({
     path: { id: cartId },
     body: {
       items: [{
@@ -102,7 +126,7 @@ export async function addToCart(productId: string, variantId?: string, quantity:
         quantity,
       }]
     }
-  })) as SdkResult<unknown>;
+  })) as SdkResult<CartSummary>;
   if (error) {
     // Stale cart ID — drop the cookie and retry once with a fresh cart
     if (response?.status === 404) {
@@ -111,7 +135,8 @@ export async function addToCart(productId: string, variantId?: string, quantity:
     }
     throw new Error(getApiErrorMessage(error, "Failed to add to cart"));
   }
-  return getCart();
+  if (!cart) throw new Error("Cart response was empty");
+  return cart;
 }
 
 export async function createBuyNowCart(productId: string, variantId?: string) {
@@ -135,29 +160,31 @@ export async function updateCartItem(lineId: string, quantity: number) {
   const cartId = await getCartId();
   if (!cartId) return null;
 
-  const { error } = (await reponse.cart.updateItem({
+  const { data: cart, error } = (await reponse.cart.updateItem({
     path: { id: cartId, lineId },
     body: { quantity }
-  })) as SdkResult<unknown>;
+  })) as SdkResult<CartSummary>;
   if (error) {
     throw new Error(getApiErrorMessage(error, "Failed to update cart item"));
   }
 
-  return getCart();
+  if (!cart) throw new Error("Cart response was empty");
+  return cart;
 }
 
 export async function removeCartItem(lineId: string) {
   const cartId = await getCartId();
   if (!cartId) return null;
 
-  const { error } = (await reponse.cart.removeItem({
+  const { data: cart, error } = (await reponse.cart.removeItem({
     path: { id: cartId, lineId }
-  })) as SdkResult<unknown>;
+  })) as SdkResult<CartSummary>;
   if (error) {
     throw new Error(getApiErrorMessage(error, "Failed to remove cart item"));
   }
 
-  return getCart();
+  if (!cart) throw new Error("Cart response was empty");
+  return cart;
 }
 
 // ─── Promo Codes ─────────────────────────────────────────────

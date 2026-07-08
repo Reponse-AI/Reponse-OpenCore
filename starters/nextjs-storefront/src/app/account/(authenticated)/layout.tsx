@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Header } from "@/components/Header";
 import { AccountNav } from "@/components/AccountNav";
 import { getSessionToken } from "@/lib/auth";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
@@ -184,7 +183,6 @@ export default async function AccountAuthenticatedLayout({
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
-      <Header />
 
       <div className="flex-grow max-w-6xl w-full mx-auto px-8 py-10">
         {/* Breadcrumb */}

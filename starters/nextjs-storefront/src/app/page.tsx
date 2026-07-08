@@ -1,19 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import { reponse } from "@/lib/reponse";
-import { addToCart } from "@/lib/cart";
-import { Header } from "@/components/Header";
-import { revalidatePath } from "next/cache";
 import type { Product } from '@reponseai/sdk';
 import { formatPrice } from "@/lib/currency";
+import { AddToCartButton } from "@/components/AddToCartButton";
+import { listLatestProducts } from "@/lib/catalog";
 
 export default async function Home() {
   let products: Product[] = [];
   let error: string | null = null;
 
   try {
-    const response = await reponse.catalog.listProducts({ query: { limit: 12 } });
-    products = response.data?.data || [];
+    products = await listLatestProducts(12);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('Failed to fetch products:', message);
@@ -22,7 +19,6 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)]">
-      <Header />
 
       <main className="max-w-6xl mx-auto px-8 py-16">
         <div className="mb-12">
@@ -98,21 +94,14 @@ export default async function Home() {
                         )}
                       </div>
 
-                      <form action={async () => {
-                        "use server";
-                        if (!product.in_stock) return;
-                        const variantId = product.variants?.[0]?.id;
-                        await addToCart(product.id, variantId, 1);
-                        revalidatePath("/");
-                      }}>
-                        <button
-                          disabled={!product.in_stock}
-                          type="submit"
-                          className="px-3 py-2 bg-black text-white text-xs font-semibold rounded-xl hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
-                        >
-                          {product.in_stock ? "Add" : "Sold Out"}
-                        </button>
-                      </form>
+                      <AddToCartButton
+                        productId={product.id}
+                        variantId={product.variants?.[0]?.id}
+                        price={product.price}
+                        currency={currency}
+                        disabled={!product.in_stock}
+                        compact
+                      />
                     </div>
                   </div>
                 </div>

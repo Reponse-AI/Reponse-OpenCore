@@ -1,10 +1,9 @@
 "use client";
 
-import { Check, LoaderCircle, ShoppingCart } from "lucide-react";
 import { BuyNowButton } from "@/components/BuyNowButton";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatPrice } from "@/lib/currency";
 import { useBuyNow } from "@/hooks/useBuyNow";
-import { useCartMutations } from "@/hooks/useCartMutations";
 import { useProductVariants } from "@/hooks/useProductVariants";
 import type {
   StorefrontOptionDefinition,
@@ -51,16 +50,7 @@ export function VariantSelector({
     initialPrice,
     initialCompareAtPrice,
   });
-  const { addItem } = useCartMutations();
   const buyNow = useBuyNow();
-  const adding = addItem.isPending;
-  const added = addItem.isSuccess;
-  const error = addItem.error instanceof Error ? addItem.error.message : null;
-
-  const handleAddToCart = () => {
-    if (!variantInStock || adding) return;
-    addItem.mutate({ productId, variantId: displayVariant?.id, quantity: 1 });
-  };
 
   const handleBuyNow = () => {
     if (!variantInStock) return;
@@ -148,47 +138,29 @@ export function VariantSelector({
 
       {/* Add to Cart CTA */}
       <div className="pt-2 border-t border-gray-100">
-        <button
-          onClick={handleAddToCart}
-          disabled={!variantInStock || adding}
-          className="w-full py-4 bg-black text-white text-lg font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          aria-live="polite"
-        >
-          {adding ? (
-            <>
-              <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
-              Adding…
-            </>
-          ) : added ? (
-            <>
-              <Check className="size-5" aria-hidden="true" />
-              Added to Cart
-            </>
-          ) : variantInStock ? (
-            <>
-              <ShoppingCart className="size-5" aria-hidden="true" />
-              Add to Cart
-            </>
-          ) : (
-            "Out of Stock"
-          )}
-        </button>
+        <AddToCartButton
+          productId={productId}
+          variantId={displayVariant?.id}
+          price={displayPrice}
+          currency={currency}
+          disabled={!variantInStock}
+        />
 
         <div className="mt-3">
           <BuyNowButton
-            disabled={!variantInStock || adding}
+            disabled={!variantInStock}
             isPending={buyNow.isPending}
             onClick={handleBuyNow}
           />
         </div>
 
-        {(error || buyNow.error) && (
+        {buyNow.error && (
           <p className="text-sm text-red-600 mt-3 text-center" role="alert">
-            {error ?? buyNow.error}
+            {buyNow.error}
           </p>
         )}
 
-        {!variantInStock && !error && !buyNow.error && (
+        {!variantInStock && !buyNow.error && (
           <p className="text-center text-sm text-gray-400 mt-3">
             This item is currently out of stock. Check back soon.
           </p>

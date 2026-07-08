@@ -1,12 +1,14 @@
-import { Header } from "@/components/Header";
-import { addToCart } from "@/lib/cart";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatPrice } from "@/lib/currency";
-import { reponse } from "@/lib/reponse";
-import { revalidatePath } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { env } from "@/env";
+import {
+  getCollection,
+  getCollectionProducts,
+} from "@/lib/catalog";
+import type { Product } from "@reponseai/sdk";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,11 +34,7 @@ export async function generateMetadata({
   const { handle } = await params;
 
   try {
-    const collectionsRes = await reponse.catalog.listCollections();
-    const collections = (collectionsRes.data?.data ?? []) as unknown as Array<
-      { handle: string; title: string; description?: string | null } & CollectionSeo
-    >;
-    const collection = collections.find((c) => c.handle === handle);
+    const collection = await getCollection(handle);
 
     if (collection) {
       const siteUrl = env.SITE_URL;
@@ -65,38 +63,15 @@ export default async function CollectionPage({
   const { handle } = await params;
 
   let collection: CollectionData | null = null;
-  let products: Array<Record<string, unknown>> = [];
+  let products: Product[] = [];
   let error: string | null = null;
 
   try {
-    // Fetch collection info
-    const collectionsRes = await reponse.catalog.listCollections();
-    const allCollections = (collectionsRes.data?.data ?? []) as unknown as Array<
-      CollectionData & Record<string, unknown>
-    >;
-    collection =
-      allCollections.find((c) => c?.handle === handle) ?? null;
+    collection = await getCollection(handle);
 
     if (collection) {
-      const apiUrl = env.REPONSE_API_URL;
-      const apiKey = env.REPONSE_API_KEY;
-      const workspaceId = env.REPONSE_WORKSPACE_ID;
-
-      const productsRes = await fetch(
-        `${apiUrl}/v1/collections/${handle}/products?workspace_id=${workspaceId}&limit=50`,
-        { headers: { "x-api-key": apiKey } },
-      );
-
-      if (productsRes.ok) {
-        const productsData = (await productsRes.json()) as {
-          products?: Array<Record<string, unknown>>;
-        };
-        products = productsData.products || [];
-      } else if (productsRes.status !== 404) {
-        throw new Error(
-          `Failed to fetch collection products: ${productsRes.statusText}`,
-        );
-      }
+      const productsData = await getCollectionProducts(handle);
+      products = productsData.products;
     }
   } catch (err: unknown) {
     const message =
@@ -169,7 +144,6 @@ export default async function CollectionPage({
           __html: JSON.stringify(breadcrumbJsonLd),
         }}
       />
-      <Header />
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-8 py-12">
         {/* Breadcrumb */}
@@ -211,22 +185,15 @@ export default async function CollectionPage({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {products.map((product) => {
-              const id = product.id as string;
-              const title = product.title as string;
-              const slug = (product.slug as string) || id;
-              const price = product.price as number;
-              const compareAtPrice = product.compare_at_price as
-                | number
-                | undefined;
-              const currency =
-                (product.currency as string) || "EUR";
-              const inStock = product.in_stock as boolean;
-              const images = product.images as
-                | string[]
-                | undefined;
-              const variants = product.variants as
-                | Array<{ id: string }>
-                | undefined;
+              const id = product.id;
+              const title = product.title;
+              const slug = product.slug || id;
+              const price = product.price;
+              const compareAtPrice = product.compare_at_price;
+              const currency = product.currency || "EUR";
+              const inStock = product.in_stock;
+              const images = product.images;
+              const variants = product.variants;
 
               const isOnSale =
                 compareAtPrice != null && compareAtPrice > price;
@@ -319,25 +286,14 @@ export default async function CollectionPage({
                         )}
                       </div>
 
-                      <form
-                        action={async () => {
-                          "use server";
-                          if (!inStock) return;
-                          const variantId = variants?.[0]?.id;
-                          await addToCart(id, variantId, 1);
-                          revalidatePath(
-                            `/collections/${handle}`,
-                          );
-                        }}
-                      >
-                        <button
-                          disabled={!inStock}
-                          type="submit"
-                          className="px-4 py-2 bg-black text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {inStock ? "Add to Cart" : "Sold Out"}
-                        </button>
-                      </form>
+                      <AddToCartButton
+                        productId={id}
+                        variantId={variants?.[0]?.id}
+                        price={price}
+                        currency={currency}
+                        disabled={!inStock}
+                        compact
+                      />
                     </div>
                   </div>
                 </div>

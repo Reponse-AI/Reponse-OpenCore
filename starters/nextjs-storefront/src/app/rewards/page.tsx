@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { env } from "@/env";
-import { Header } from "@/components/Header";
 import { getStoreConfig, isModuleActive } from "@/lib/config";
 import { getLoyaltyProgram } from "@/lib/loyalty";
 import { formatPrice } from "@/lib/currency";
@@ -68,7 +67,6 @@ export default async function RewardsPage() {
         fontFamily: "var(--rp-font-family)",
       }}
     >
-      <Header />
 
       {/* Hero */}
       <section

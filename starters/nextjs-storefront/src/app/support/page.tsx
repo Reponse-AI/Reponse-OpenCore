@@ -1,4 +1,3 @@
-import { Header } from "@/components/Header";
 import { getStoreConfig } from "@/lib/config";
 import { SupportForm } from "./SupportForm";
 
@@ -36,7 +35,6 @@ export default async function SupportPage() {
         fontFamily: "var(--rp-font-family)",
       }}
     >
-      <Header />
 
       <div
         style={{
