@@ -16,6 +16,7 @@ export interface StoreModuleConfig {
 }
 
 export interface StoreTheme {
+  stripe_publishable_key: string;
   '--rp-color-primary': string;
   '--rp-color-primary-hover': string;
   '--rp-color-background': string;
@@ -35,6 +36,7 @@ export interface StoreTheme {
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_THEME: StoreTheme = {
+  stripe_publishable_key: '',
   '--rp-color-primary': '#111111',
   '--rp-color-primary-hover': '#333333',
   '--rp-color-background': '#f9fafb',
@@ -70,6 +72,8 @@ export async function getStoreConfig(): Promise<StoreTheme> {
     );
     if (!res.ok) throw new Error('Failed to fetch theme');
     const data: StoreTheme = await res.json();
+    data.stripe_publishable_key =
+      data.stripe_publishable_key || DEFAULT_THEME.stripe_publishable_key;
     // An unconfigured brand name/logo must not erase the local defaults
     data['--rp-brand-name'] = data['--rp-brand-name'] || DEFAULT_THEME['--rp-brand-name'];
     data['--rp-brand-logo'] = data['--rp-brand-logo'] || DEFAULT_THEME['--rp-brand-logo'];

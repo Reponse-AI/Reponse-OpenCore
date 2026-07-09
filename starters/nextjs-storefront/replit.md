@@ -23,7 +23,7 @@ Required in `.env` (see `.env.example`):
 - `REPONSE_API_KEY` — Server-side SDK authentication
 - `NEXT_PUBLIC_REPONSE_API_URL` — API base URL
 - `NEXT_PUBLIC_WORKSPACE_ID` — Workspace identifier
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — Stripe public key
+- Stripe’s publishable key is loaded from the configured Reponse workspace.
 - `NEXT_PUBLIC_MARKET_ID` — Market for currency/tax resolution
 - `CHECKOUT_MODE` — `embedded` or `redirect`
 
