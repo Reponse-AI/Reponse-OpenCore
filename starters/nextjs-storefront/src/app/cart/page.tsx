@@ -8,6 +8,7 @@ import { getDistinctVariantTitle } from "@/lib/product-title";
 import type { StorefrontCart, StorefrontCartItem, StorefrontDiscount } from "@/types/storefront";
 import { CartHydrator } from "@/components/CartHydrator";
 import { CartItemCard } from "@/components/CartItemCard";
+import { CartAmount } from "@/components/CartAmount";
 import type { CartSummary } from "@/types/storefront";
 
 export const metadata = {
@@ -32,6 +33,8 @@ export default async function CartPage() {
         id: enriched.id,
         item_count: items.reduce((total, item) => total + item.quantity, 0),
         subtotal,
+        discount_total: discountTotal,
+        adjusted_total: adjustedTotal,
         currency,
         items: items.map((item) => ({
           id: item.id,
@@ -93,7 +96,13 @@ export default async function CartPage() {
                 
                 <div className="flex justify-between mb-4 text-gray-600">
                   <span>Subtotal</span>
-                  <span>{formatPrice(subtotal, currency)}</span>
+                  <span>
+                    <CartAmount
+                      amount="subtotal"
+                      fallback={subtotal}
+                      currency={currency}
+                    />
+                  </span>
                 </div>
 
                 {/* Applied promo codes */}
@@ -156,7 +165,13 @@ export default async function CartPage() {
                 
                 <div className="border-t border-gray-100 pt-6 mb-8 flex justify-between items-center">
                   <span className="font-bold text-lg">Total</span>
-                  <span className="font-extrabold text-2xl">{formatPrice(adjustedTotal, currency)}</span>
+                  <span className="font-extrabold text-2xl">
+                    <CartAmount
+                      amount="total"
+                      fallback={adjustedTotal}
+                      currency={currency}
+                    />
+                  </span>
                 </div>
 
                 <form action={async () => {

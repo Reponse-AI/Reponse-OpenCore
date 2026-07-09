@@ -114,6 +114,8 @@ export interface CartSummary {
   id: string;
   item_count: number;
   subtotal: number;
+  discount_total?: number;
+  adjusted_total?: number;
   currency: string;
   items: CartSummaryItem[];
 }

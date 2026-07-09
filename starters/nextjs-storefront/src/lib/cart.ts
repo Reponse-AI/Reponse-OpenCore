@@ -11,6 +11,11 @@ import { env } from "@/env";
 const CART_COOKIE_NAME = "reponse_cart_id";
 const BUY_NOW_CART_COOKIE_NAME = "reponse_buy_now_cart_id";
 
+type CartWithTotals = Cart & {
+  discount_total?: number;
+  adjusted_total?: number;
+};
+
 export async function getCartId(): Promise<string | undefined> {
   const cookieStore = await cookies();
   return cookieStore.get(CART_COOKIE_NAME)?.value;
@@ -72,7 +77,7 @@ export async function getCart() {
   return cart ?? null;
 }
 
-function toCartSummary(cart: Cart): CartSummary {
+function toCartSummary(cart: CartWithTotals): CartSummary {
   const items = (cart.items ?? []).map((item) => ({
     id: item.id,
     product_id: item.product_id,
@@ -85,6 +90,8 @@ function toCartSummary(cart: Cart): CartSummary {
     id: cart.id,
     item_count: items.reduce((total, item) => total + item.quantity, 0),
     subtotal: cart.subtotal,
+    discount_total: cart.discount_total,
+    adjusted_total: cart.adjusted_total,
     currency: cart.currency,
     items,
   };

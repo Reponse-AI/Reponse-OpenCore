@@ -8,6 +8,16 @@ export interface OptimisticAddInput {
   currency?: string;
 }
 
+function getOptimisticAmounts(cart: CartSummary, subtotal: number) {
+  return {
+    subtotal,
+    adjusted_total:
+      cart.adjusted_total === undefined
+        ? undefined
+        : Math.max(0, subtotal - (cart.discount_total ?? 0)),
+  };
+}
+
 export function optimisticallyAddItem(
   cart: CartSummary | null | undefined,
   input: OptimisticAddInput,
@@ -41,7 +51,7 @@ export function optimisticallyAddItem(
   return {
     ...cart,
     item_count: cart.item_count + quantity,
-    subtotal: cart.subtotal + price * quantity,
+    ...getOptimisticAmounts(cart, cart.subtotal + price * quantity),
     items: existing
       ? cart.items.map((item) =>
           item.id === existing.id
@@ -74,7 +84,10 @@ export function optimisticallyUpdateItem(
   return {
     ...cart,
     item_count: cart.item_count + quantityDelta,
-    subtotal: cart.subtotal + quantityDelta * line.price,
+    ...getOptimisticAmounts(
+      cart,
+      cart.subtotal + quantityDelta * line.price,
+    ),
     items: cart.items.map((item) =>
       item.id === lineId ? { ...item, quantity } : item,
     ),
@@ -91,7 +104,10 @@ export function optimisticallyRemoveItem(
   return {
     ...cart,
     item_count: cart.item_count - line.quantity,
-    subtotal: cart.subtotal - line.quantity * line.price,
+    ...getOptimisticAmounts(
+      cart,
+      cart.subtotal - line.quantity * line.price,
+    ),
     items: cart.items.filter((item) => item.id !== lineId),
   };
 }

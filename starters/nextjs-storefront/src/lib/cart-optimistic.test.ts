@@ -46,4 +46,19 @@ describe("optimistic cart updates", () => {
       items: [],
     });
   });
+
+  it("updates the displayed adjusted total while awaiting the server", () => {
+    const discountedCart = {
+      ...cart,
+      discount_total: 5,
+      adjusted_total: 15,
+    };
+
+    expect(
+      optimisticallyUpdateItem(discountedCart, "line-1", 3),
+    ).toMatchObject({
+      subtotal: 30,
+      adjusted_total: 25,
+    });
+  });
 });

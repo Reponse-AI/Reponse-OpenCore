@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
+import { getCartLineTotal } from "@/lib/cart-display";
 import { formatPrice } from "@/lib/currency";
 
 interface CartItemCardProps {
@@ -65,7 +66,9 @@ export function CartItemCard({
               <div className="mt-0.5 text-xs text-gray-500">{variantTitle}</div>
             )}
           </div>
-          <span className="font-bold">{formatPrice(price, currency)}</span>
+          <span className="font-bold">
+            {formatPrice(getCartLineTotal(price, quantity), currency)}
+          </span>
         </div>
 
         <div className="mt-auto flex items-center justify-between">
