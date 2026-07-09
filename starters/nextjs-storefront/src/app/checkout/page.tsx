@@ -8,8 +8,6 @@ import { redirect } from "next/navigation";
 import { EmbeddedCheckout } from "./embedded-checkout";
 import { env } from "@/env";
 import { getStoreConfig } from "@/lib/config";
-import { resolveEmbeddedCheckoutConfiguration } from "@/lib/checkout/configuration";
-import { CheckoutConfigurationEmptyState } from "@/components/checkout/CheckoutConfigurationEmptyState";
 
 export const metadata = {
   title: "Checkout | Reponse Store",
@@ -40,18 +38,6 @@ export default async function CheckoutPage({
   // Embedded checkout (default) — Stripe Elements on the storefront
   if (env.CHECKOUT_MODE === "embedded") {
     const storeConfig = await getStoreConfig();
-    const checkoutConfiguration = resolveEmbeddedCheckoutConfiguration(
-      storeConfig.stripe_publishable_key,
-      env.REPONSE_WORKSPACE_ID,
-    );
-
-    if (checkoutConfiguration.status === "missing") {
-      return (
-        <CheckoutConfigurationEmptyState
-          paymentsSettingsUrl={checkoutConfiguration.paymentsSettingsUrl}
-        />
-      );
-    }
 
     return (
       <div className="min-h-screen bg-gray-50 text-gray-900 font-[family-name:var(--font-geist-sans)] flex flex-col">
@@ -60,7 +46,8 @@ export default async function CheckoutPage({
           marketId={env.MARKET_ID}
           apiUrl={env.REPONSE_API_URL}
           apiKey={env.REPONSE_API_KEY}
-          stripePublishableKey={checkoutConfiguration.stripePublishableKey}
+          stripePublishableKey={storeConfig.stripe_publishable_key}
+          workspaceId={env.REPONSE_WORKSPACE_ID}
           successPath={successPath}
         />
       </div>

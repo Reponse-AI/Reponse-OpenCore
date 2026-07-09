@@ -1,16 +1,26 @@
-import Link from "next/link";
-
 interface CheckoutConfigurationEmptyStateProps {
   paymentsSettingsUrl: string;
+  onBack: () => void;
 }
 
 export function CheckoutConfigurationEmptyState({
   paymentsSettingsUrl,
+  onBack,
 }: CheckoutConfigurationEmptyStateProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 font-[family-name:var(--font-geist-sans)] text-gray-900">
-      <main className="mx-auto flex w-full max-w-2xl flex-grow items-center px-6 py-16">
-        <section className="w-full rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-sm sm:p-12">
+    <section className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm sm:p-8">
+      <div className="mb-6 flex items-center gap-2 text-left">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back to shipping"
+          className="p-1 text-xl leading-none text-gray-500 transition-colors hover:text-gray-900"
+        >
+          ←
+        </button>
+        <h2 className="text-xl font-bold">Payment</h2>
+      </div>
+      <div className="py-4">
           <div className="mx-auto mb-6 flex size-12 items-center justify-center rounded-full bg-amber-50 text-amber-700">
             <svg
               aria-hidden="true"
@@ -40,15 +50,15 @@ export function CheckoutConfigurationEmptyState({
             >
               Configure payments
             </a>
-            <Link
-              href="/cart"
+            <button
+              type="button"
+              onClick={onBack}
               className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-6 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
             >
-              Return to cart
-            </Link>
+              Back to shipping
+            </button>
           </div>
-        </section>
-      </main>
-    </div>
+      </div>
+    </section>
   );
 }

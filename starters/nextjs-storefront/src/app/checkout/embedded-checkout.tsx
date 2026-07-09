@@ -13,10 +13,11 @@ interface EmbeddedCheckoutProps {
   apiUrl: string;
   apiKey: string;
   stripePublishableKey: string;
+  workspaceId: string;
   successPath: string;
 }
 
-export function EmbeddedCheckout({ cartId, marketId, apiUrl, apiKey, stripePublishableKey, successPath }: EmbeddedCheckoutProps) {
+export function EmbeddedCheckout({ cartId, marketId, apiUrl, apiKey, stripePublishableKey, workspaceId, successPath }: EmbeddedCheckoutProps) {
   return (
     <CheckoutProvider cartId={cartId} marketId={marketId} apiUrl={apiUrl} apiKey={apiKey}>
       <main className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 max-w-[1100px] mx-auto px-4 sm:px-6 py-8 w-full min-h-[calc(100vh-64px)]">
@@ -33,7 +34,11 @@ export function EmbeddedCheckout({ cartId, marketId, apiUrl, apiKey, stripePubli
           <ContactStep />
           <ShippingStep />
           <DiscountInput />
-          <PaymentStep stripePublicKey={stripePublishableKey} successPath={successPath} />
+          <PaymentStep
+            stripePublicKey={stripePublishableKey}
+            workspaceId={workspaceId}
+            successPath={successPath}
+          />
         </div>
 
         {/* Right — Order Summary */}

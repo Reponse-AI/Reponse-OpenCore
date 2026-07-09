@@ -1,5 +1,8 @@
 type EmbeddedCheckoutConfiguration =
   | {
+      status: "hidden";
+    }
+  | {
       status: "ready";
       stripePublishableKey: string;
     }
@@ -11,7 +14,12 @@ type EmbeddedCheckoutConfiguration =
 export function resolveEmbeddedCheckoutConfiguration(
   stripePublishableKey: string,
   workspaceId: string,
+  step: "contact" | "shipping" | "payment",
 ): EmbeddedCheckoutConfiguration {
+  if (step !== "payment") {
+    return { status: "hidden" };
+  }
+
   const normalizedKey = stripePublishableKey.trim();
 
   if (normalizedKey) {

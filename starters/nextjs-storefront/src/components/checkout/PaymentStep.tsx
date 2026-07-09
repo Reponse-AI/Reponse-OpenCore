@@ -6,6 +6,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { FormEvent, useEffect, useState } from 'react';
 import { useCheckout } from './CheckoutProvider';
 import { useConfirmOrder } from '@/hooks/useCheckoutApi';
+import { resolveEmbeddedCheckoutConfiguration } from '@/lib/checkout/configuration';
+import { CheckoutConfigurationEmptyState } from './CheckoutConfigurationEmptyState';
 
 // ─── Inner Payment Form ──────────────────────────────────────────────────────
 
@@ -185,18 +187,27 @@ function PaymentForm({ successPath }: { successPath: string }) {
 
 interface PaymentStepProps {
   stripePublicKey: string;
+  workspaceId: string;
   successPath: string;
 }
 
-export function PaymentStep({ stripePublicKey, successPath }: PaymentStepProps) {
-  const { step, createPaymentIntent } = useCheckout();
-  const [stripePromise] = useState(() => loadStripe(stripePublicKey));
+export function PaymentStep({ stripePublicKey, workspaceId, successPath }: PaymentStepProps) {
+  const { step, setStep, createPaymentIntent } = useCheckout();
+  const checkoutConfiguration = resolveEmbeddedCheckoutConfiguration(
+    stripePublicKey,
+    workspaceId,
+    step,
+  );
+  const [stripePromise] = useState(() => {
+    const normalizedKey = stripePublicKey.trim();
+    return normalizedKey ? loadStripe(normalizedKey) : null;
+  });
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (step !== 'payment') return;
+    if (checkoutConfiguration.status !== 'ready') return;
     let cancelled = false;
 
     async function init() {
@@ -214,9 +225,18 @@ export function PaymentStep({ stripePublicKey, successPath }: PaymentStepProps) 
 
     init();
     return () => { cancelled = true; };
-  }, [step, createPaymentIntent]);
+  }, [checkoutConfiguration.status, createPaymentIntent]);
 
-  if (step !== 'payment') return null;
+  if (checkoutConfiguration.status === 'hidden') return null;
+
+  if (checkoutConfiguration.status === 'missing') {
+    return (
+      <CheckoutConfigurationEmptyState
+        paymentsSettingsUrl={checkoutConfiguration.paymentsSettingsUrl}
+        onBack={() => setStep('shipping')}
+      />
+    );
+  }
 
   if (isLoading || !clientSecret) {
     return (
