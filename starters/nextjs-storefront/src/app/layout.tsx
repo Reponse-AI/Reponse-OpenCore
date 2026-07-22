@@ -141,7 +141,9 @@ export default async function RootLayout({
         </QueryProvider>
         {env.REPONSE_WORKSPACE_ID && (
           <Script
-            src="https://reponse.ai/assets/sdk/reponse-widget.min.js"
+            // Same origin as the API: local dev loads the widget (and its chat
+            // iframe) from the local main app instead of production.
+            src={`${new URL(env.REPONSE_API_URL).origin}/assets/sdk/reponse-widget.min.js`}
             data-reponse-workspace-id={env.REPONSE_WORKSPACE_ID}
             strategy="lazyOnload"
           />
