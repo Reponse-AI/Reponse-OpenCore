@@ -1,5 +1,5 @@
 ---
-title: "Loyalty — Referral"
+title: "Loyalty : Referral"
 description: "Récupère le code de parrainage et les stats d'un contact."
 ---
 

@@ -108,6 +108,15 @@ export interface CartSummaryItem {
   variant_id: string | null;
   quantity: number;
   price: number;
+  /**
+   * Display metadata, only present when the summary was built from the
+   * enriched `GET /v1/carts/:id` payload (cart mutation responses carry the
+   * line amounts only). Consumers must treat every field as optional.
+   */
+  title?: string | null;
+  handle?: string | null;
+  image_url?: string | null;
+  variant_title?: string | null;
 }
 
 export interface CartSummary {

@@ -1,5 +1,5 @@
 ---
-title: "Collections — Products"
+title: "Collections : Products"
 description: "Liste les produits appartenant à une collection."
 ---
 

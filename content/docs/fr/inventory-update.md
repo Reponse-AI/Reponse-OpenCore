@@ -1,5 +1,5 @@
 ---
-title: "Inventory — Update"
+title: "Inventory : Update"
 description: "Mettre à jour la quantité en stock. Supporte les modes 'set' (absolu) et 'adjust' (relatif)."
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Product Feed — CSV"
+title: "Product Feed : CSV"
 description: "Récupère le flux produits en CSV."
 ---
 

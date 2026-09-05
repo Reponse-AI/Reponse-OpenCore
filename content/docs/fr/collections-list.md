@@ -1,5 +1,5 @@
 ---
-title: "Collections — List"
+title: "Collections : List"
 description: "Liste toutes les collections actives d'un workspace."
 ---
 

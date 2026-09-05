@@ -1,5 +1,5 @@
 ---
-title: "Discounts — Create"
+title: "Discounts : Create"
 description: "Crée un code de réduction."
 ---
 

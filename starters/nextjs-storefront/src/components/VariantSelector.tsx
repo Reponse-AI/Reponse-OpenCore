@@ -3,6 +3,7 @@
 import { BuyNowButton } from "@/components/BuyNowButton";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatPrice } from "@/lib/currency";
+import { getDistinctVariantTitle } from "@/lib/product-title";
 import { useBuyNow } from "@/hooks/useBuyNow";
 import { useProductVariants } from "@/hooks/useProductVariants";
 import type {
@@ -19,6 +20,10 @@ interface VariantSelectorProps {
   /** Initial price (from the server-rendered product) */
   initialPrice: number;
   initialCompareAtPrice?: number | null;
+  /** Display metadata forwarded to the cart drawer on add-to-cart. */
+  productTitle?: string;
+  productHandle?: string;
+  productImage?: string;
 }
 
 
@@ -33,6 +38,9 @@ export function VariantSelector({
   inStock,
   initialPrice,
   initialCompareAtPrice,
+  productTitle,
+  productHandle,
+  productImage,
 }: VariantSelectorProps) {
   const {
     selected,
@@ -144,6 +152,14 @@ export function VariantSelector({
           price={displayPrice}
           currency={currency}
           disabled={!variantInStock}
+          productTitle={productTitle}
+          productHandle={productHandle}
+          productImage={productImage}
+          variantTitle={getDistinctVariantTitle(
+            productTitle,
+            displayVariant?.title,
+            variants.length <= 1,
+          )}
         />
 
         <div className="mt-3">

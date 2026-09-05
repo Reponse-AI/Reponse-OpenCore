@@ -1,5 +1,5 @@
 ---
-title: "Checkout — Payment Intent"
+title: "Checkout : Payment Intent"
 description: "Crée un PaymentIntent Stripe pour un panier (checkout headless / embarqué)."
 ---
 

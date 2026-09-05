@@ -1,5 +1,5 @@
 ---
-title: "Tickets — Reply"
+title: "Tickets : Reply"
 description: "Répond à un ticket de support."
 ---
 

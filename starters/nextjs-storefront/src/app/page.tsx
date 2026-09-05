@@ -100,6 +100,9 @@ export default async function Home() {
                         price={product.price}
                         currency={currency}
                         disabled={!product.in_stock}
+                        productTitle={product.title}
+                        productHandle={product.slug || undefined}
+                        productImage={product.images?.[0]}
                         compact
                       />
                     </div>

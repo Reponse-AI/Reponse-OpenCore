@@ -15,10 +15,41 @@ if (!API_KEY) {
   process.exit(1);
 }
 
+/**
+ * PERIMETRE DU SERVEUR.
+ *
+ * Shopify sert desormais nativement, gratuitement et sans authentification, le
+ * catalogue, le panier, le checkout et le suivi de commande via ses propres
+ * serveurs MCP par boutique. Exposer les memes outils ici n apporte rien au
+ * marchand et nous met en concurrence frontale avec la plateforme.
+ *
+ * Ce serveur expose donc par defaut la seule surface que Shopify ne couvre pas :
+ * l experience client, tickets, fidelite et parrainage.
+ *
+ * Les outils du moteur de commerce ne sont PAS supprimes. Ils restent dans ce
+ * fichier, testes et fonctionnels, et se rallument d un seul reglage :
+ *   REPONSE_MCP_COMMERCE=1
+ * pour les deploiements en commerce autonome, sans Shopify.
+ */
+const CX_TOOLS = new Set([
+  "list_reviews",
+  "list_tickets",
+  "get_ticket",
+  "create_ticket",
+  "reply_to_ticket",
+  "get_loyalty_balance",
+  "redeem_loyalty",
+  "get_referral_info",
+]);
+
+const COMMERCE_OS_ENABLED = process.env.REPONSE_MCP_COMMERCE === "1";
+
+const isToolExposed = (name: string) => COMMERCE_OS_ENABLED || CX_TOOLS.has(name);
+
 const server = new Server(
   {
-    name: "reponse-commerce-mcp",
-    version: "0.1.0",
+    name: "reponse-cx-mcp",
+    version: "0.2.0",
   },
   {
     capabilities: {
@@ -46,8 +77,19 @@ async function fetchFromApi(endpoint: string, options: RequestInit = {}) {
 }
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
+  const allTools = [
+      {
+        name: "list_reviews",
+        description:
+          "List published customer reviews for the store (rating, content, product, merchant response). Use it to answer questions about what customers say, to find reviews awaiting a reply, or to quote social proof. Newest first, cursor paginated.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: { type: "number", description: "Number of reviews to return, 1 to 50 (default 10)" },
+            cursor: { type: "string", description: "Pagination cursor returned by a previous call" },
+          },
+        },
+      },
       {
         name: "list_products",
         description: "Retrieve a list of products from the Reponse Commerce backend. Use this to discover available products, their IDs, and prices.",
@@ -523,14 +565,32 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["address"],
         },
       },
-    ],
-  };
+  ];
+
+  return { tools: allTools.filter((t) => isToolExposed(t.name)) };
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   try {
+    // Un outil du moteur de commerce reste appelable uniquement si le drapeau
+    // est actif : sinon l agent recoit une erreur explicite plutot qu un
+    // comportement silencieux.
+    if (!isToolExposed(name)) {
+      throw new Error(
+        `Tool "${name}" belongs to the commerce engine, which is disabled on this server. On Shopify, use the store's native MCP endpoints for catalog, cart, checkout and orders. Set REPONSE_MCP_COMMERCE=1 to enable it.`
+      );
+    }
+
+    if (name === "list_reviews") {
+      const limit = typeof args?.limit === "number" ? Math.min(Math.max(args.limit, 1), 50) : 10;
+      const searchParams = new URLSearchParams({ limit: String(limit) });
+      if (typeof args?.cursor === "string" && args.cursor) searchParams.set("cursor", args.cursor);
+      const data = await fetchFromApi(`/v1/reviews?${searchParams.toString()}`);
+      return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+    }
+
     if (name === "list_products") {
       const limit = typeof args?.limit === "number" ? args.limit : 50;
       const query = typeof args?.query === "string" ? args.query : "";

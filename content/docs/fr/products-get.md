@@ -1,5 +1,5 @@
 ---
-title: "Products — Get"
+title: "Products : Get"
 description: "Récupérer un produit par UUID avec toutes ses variantes et images."
 ---
 

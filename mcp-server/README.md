@@ -1,5 +1,8 @@
 # @reponseai/mcp
 
+> **Scope.** By default this server exposes the customer experience surface only: reviews, tickets, loyalty and referrals. Shopify already serves catalog, cart, checkout and orders natively through its own per-store MCP endpoints, so those tools are hidden here. Set `REPONSE_MCP_COMMERCE=1` to enable them for standalone commerce deployments. Set `REPONSE_API_URL` to your Reponse instance (for example `https://reponse.ai`).
+
+
 > Headless Commerce MCP Server — Connect Claude, Cursor, or Windsurf to your Reponse store in 30 seconds.
 
 [![npm version](https://img.shields.io/npm/v/@reponseai/mcp.svg)](https://www.npmjs.com/package/@reponseai/mcp)

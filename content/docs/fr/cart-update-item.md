@@ -1,5 +1,5 @@
 ---
-title: "Cart — Update Item"
+title: "Cart : Update Item"
 description: "Met à jour la quantité d'une ligne de panier."
 ---
 

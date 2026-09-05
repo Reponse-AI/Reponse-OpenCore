@@ -1,5 +1,5 @@
 ---
-title: "Inventory — Get"
+title: "Inventory : Get"
 description: "Obtenir les niveaux de stock par variant_id, sku ou product_id."
 ---
 

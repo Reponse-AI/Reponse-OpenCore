@@ -1,5 +1,5 @@
 ---
-title: "Gift Cards — Redeem"
+title: "Gift Cards : Redeem"
 description: "Utilise un montant sur une carte cadeau."
 ---
 

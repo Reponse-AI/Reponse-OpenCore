@@ -1,5 +1,5 @@
 ---
-title: "Theme — Get"
+title: "Theme : Get"
 description: "Récupère les réglages de thème du storefront du workspace."
 ---
 

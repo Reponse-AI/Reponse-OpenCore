@@ -1,5 +1,5 @@
 ---
-title: "Cart — Create"
+title: "Cart : Create"
 description: "Créer un nouveau panier avec des articles initiaux."
 ---
 

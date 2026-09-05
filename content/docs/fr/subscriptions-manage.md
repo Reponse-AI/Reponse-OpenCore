@@ -1,5 +1,5 @@
 ---
-title: "Subscriptions — Manage"
+title: "Subscriptions : Manage"
 description: "Modifie un abonnement (reporter ou expédier maintenant)."
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Cart — Remove Item"
+title: "Cart : Remove Item"
 description: "Supprime une ligne d'un panier."
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Tickets — List"
+title: "Tickets : List"
 description: "Liste les tickets de support d'un client."
 ---
 

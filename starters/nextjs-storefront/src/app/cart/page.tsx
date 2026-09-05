@@ -42,6 +42,14 @@ export default async function CartPage() {
           variant_id: item.variant_id ?? null,
           quantity: item.quantity,
           price: item.price,
+          title: item.product?.title ?? null,
+          handle: item.product?.handle ?? null,
+          image_url: item.product?.images?.[0] ?? null,
+          variant_title: getDistinctVariantTitle(
+            item.product?.title,
+            item.variant_title,
+            item.has_only_one_variant,
+          ),
         })),
       }
     : null;

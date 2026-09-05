@@ -1,5 +1,5 @@
 ---
-title: "Discounts — List"
+title: "Discounts : List"
 description: "Liste les codes de réduction d'un workspace."
 ---
 

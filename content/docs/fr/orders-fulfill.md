@@ -1,5 +1,5 @@
 ---
-title: "Orders — Fulfill"
+title: "Orders : Fulfill"
 description: "Marque une commande comme expédiée et attache le suivi."
 ---
 

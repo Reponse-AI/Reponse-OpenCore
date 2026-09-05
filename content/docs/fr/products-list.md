@@ -1,5 +1,5 @@
 ---
-title: "Products — List"
+title: "Products : List"
 description: "Lister tous les produits actifs d'un workspace avec pagination par curseur et filtrage."
 ---
 

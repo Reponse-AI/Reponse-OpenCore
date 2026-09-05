@@ -2,6 +2,7 @@
 
 import { Check, LoaderCircle, ShoppingCart } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
+import { useCartDrawer } from "@/components/CartDrawerProvider";
 
 interface AddToCartButtonProps {
   productId: string;
@@ -10,6 +11,14 @@ interface AddToCartButtonProps {
   currency: string;
   disabled?: boolean;
   compact?: boolean;
+  /**
+   * Display metadata, forwarded to the cart cache so the drawer can show the
+   * new line complete before the enriched cart is refetched.
+   */
+  productTitle?: string;
+  productHandle?: string;
+  productImage?: string;
+  variantTitle?: string | null;
 }
 
 export function AddToCartButton({
@@ -19,8 +28,13 @@ export function AddToCartButton({
   currency,
   disabled = false,
   compact = false,
+  productTitle,
+  productHandle,
+  productImage,
+  variantTitle,
 }: AddToCartButtonProps) {
   const { addItem } = useCart();
+  const { openCart } = useCartDrawer();
   const isThisProductPending =
     addItem.isPending && addItem.variables?.productId === productId;
   const isThisProductAdded =
@@ -32,13 +46,22 @@ export function AddToCartButton({
       type="button"
       disabled={disabled || isThisProductPending}
       onClick={() =>
-        addItem.mutate({
-          productId,
-          variantId,
-          quantity: 1,
-          price,
-          currency,
-        })
+        addItem.mutate(
+          {
+            productId,
+            variantId,
+            quantity: 1,
+            price,
+            currency,
+            title: productTitle,
+            handle: productHandle,
+            imageUrl: productImage,
+            variantTitle,
+          },
+          // Per-call callback: the drawer opens only for a real click, never on
+          // mount or on cart hydration.
+          { onSuccess: () => openCart() },
+        )
       }
       className={
         compact

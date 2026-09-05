@@ -4,8 +4,12 @@ import { cookies } from "next/headers";
 import type { Cart } from "@reponseai/sdk";
 import { reponse } from "./reponse";
 import { getApiErrorMessage, type SdkResult } from "@/lib/api/response";
+import { getDistinctVariantTitle } from "@/lib/product-title";
 import type { PromoResult } from "@/types/storefront";
-import type { CartSummary } from "@/types/storefront";
+import type {
+  CartSummary,
+  StorefrontCartItem,
+} from "@/types/storefront";
 import { env } from "@/env";
 
 const CART_COOKIE_NAME = "reponse_cart_id";
@@ -78,13 +82,28 @@ export async function getCart() {
 }
 
 function toCartSummary(cart: CartWithTotals): CartSummary {
-  const items = (cart.items ?? []).map((item) => ({
-    id: item.id,
-    product_id: item.product_id,
-    variant_id: item.variant_id ?? null,
-    quantity: item.quantity,
-    price: item.price,
-  }));
+  const items = (cart.items ?? []).map((item) => {
+    // GET /v1/carts/:id enriches each line with its product; the SDK's Cart
+    // type predates that, hence the widening cast.
+    const line = item as typeof item & Partial<StorefrontCartItem>;
+    const title = line.product?.title ?? null;
+
+    return {
+      id: item.id,
+      product_id: item.product_id,
+      variant_id: item.variant_id ?? null,
+      quantity: item.quantity,
+      price: item.price,
+      title,
+      handle: line.product?.handle ?? null,
+      image_url: line.product?.images?.[0] ?? null,
+      variant_title: getDistinctVariantTitle(
+        title,
+        line.variant_title,
+        line.has_only_one_variant,
+      ),
+    };
+  });
 
   return {
     id: cart.id,

@@ -1,5 +1,5 @@
 ---
-title: "Approvals — Reject"
+title: "Approvals : Reject"
 description: "Rejette une approbation en attente."
 ---
 

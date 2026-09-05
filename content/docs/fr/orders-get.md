@@ -1,5 +1,5 @@
 ---
-title: "Orders — Get"
+title: "Orders : Get"
 description: "Liste les commandes d'un workspace, avec filtre de statut optionnel."
 ---
 

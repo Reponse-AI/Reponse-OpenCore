@@ -318,6 +318,9 @@ export default async function ProductPage({
               inStock={product.in_stock ?? true}
               initialPrice={product.price}
               initialCompareAtPrice={product.compare_at_price ?? null}
+              productTitle={product.title}
+              productHandle={product.slug || product.handle || undefined}
+              productImage={images[0]}
             />
 
             {/* SKU */}

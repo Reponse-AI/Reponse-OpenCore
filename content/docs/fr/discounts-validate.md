@@ -1,5 +1,5 @@
 ---
-title: "Discounts — Validate"
+title: "Discounts : Validate"
 description: "Valider un code de réduction par rapport au contexte du panier. Vérifie le statut actif, la validité des dates, les limites d'utilisation et les minimums de commande."
 ---
 

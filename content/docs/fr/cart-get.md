@@ -1,5 +1,5 @@
 ---
-title: "Cart — Get"
+title: "Cart : Get"
 description: "Récupère un panier avec ses lignes, ses totaux et les remises automatiques appliquées."
 ---
 

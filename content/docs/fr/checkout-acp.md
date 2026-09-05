@@ -1,5 +1,5 @@
 ---
-title: "Checkout — ACP"
+title: "Checkout : ACP"
 description: "Checkout via le protocole Agentic Commerce. Accepte un Shared Payment Token (SPT) d'agents AI pour compléter un achat."
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Shipping — Rates"
+title: "Shipping : Rates"
 description: "Récupère les tarifs de livraison disponibles pour un marché et un panier."
 ---
 

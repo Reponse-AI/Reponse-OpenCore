@@ -1,4 +1,4 @@
-import type { CartSummary } from "@/types/storefront";
+import type { CartSummary, CartSummaryItem } from "@/types/storefront";
 
 export interface OptimisticAddInput {
   productId: string;
@@ -6,6 +6,66 @@ export interface OptimisticAddInput {
   quantity: number;
   price?: number;
   currency?: string;
+  /**
+   * Display metadata supplied by the caller so a freshly added line can render
+   * complete (image, title) before the enriched cart comes back.
+   */
+  title?: string | null;
+  handle?: string | null;
+  imageUrl?: string | null;
+  variantTitle?: string | null;
+}
+
+type CartDisplayFields = Pick<
+  CartSummaryItem,
+  "title" | "handle" | "image_url" | "variant_title"
+>;
+
+function displayFieldsFrom(input: OptimisticAddInput): CartDisplayFields {
+  return {
+    title: input.title ?? null,
+    handle: input.handle ?? null,
+    image_url: input.imageUrl ?? null,
+    variant_title: input.variantTitle ?? null,
+  };
+}
+
+function variantKey(item: Pick<CartSummaryItem, "product_id" | "variant_id">) {
+  return `${item.product_id}:${item.variant_id ?? ""}`;
+}
+
+/**
+ * Cart mutation responses only carry line amounts, so replacing the cache with
+ * one would blank out every image and title. Re-apply the display metadata we
+ * already hold for each line before the server payload takes over.
+ */
+export function withPreservedItemDisplay(
+  previous: CartSummary | null | undefined,
+  next: CartSummary,
+): CartSummary {
+  if (!previous) return next;
+
+  const byLineId = new Map(previous.items.map((item) => [item.id, item]));
+  const byVariant = new Map(
+    previous.items.map((item) => [variantKey(item), item]),
+  );
+
+  return {
+    ...next,
+    items: next.items.map((item) => {
+      if (item.title) return item;
+      const known = byLineId.get(item.id) ?? byVariant.get(variantKey(item));
+      if (!known?.title) return item;
+
+      return {
+        ...item,
+        title: known.title,
+        handle: known.handle,
+        image_url: known.image_url,
+        variant_title: known.variant_title,
+      };
+    }),
+  };
 }
 
 function getOptimisticAmounts(cart: CartSummary, subtotal: number) {
@@ -43,6 +103,7 @@ export function optimisticallyAddItem(
           variant_id: input.variantId ?? null,
           quantity,
           price,
+          ...displayFieldsFrom(input),
         },
       ],
     };
@@ -66,6 +127,7 @@ export function optimisticallyAddItem(
             variant_id: input.variantId ?? null,
             quantity,
             price,
+            ...displayFieldsFrom(input),
           },
         ],
   };

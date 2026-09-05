@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { LoaderCircle } from "lucide-react";
 import { useCartMutations } from "@/hooks/useCartMutations";
 
 export function PromoCodeForm() {
@@ -46,9 +47,13 @@ export function PromoCodeForm() {
         <button
           type="submit"
           disabled={applyPromo.isPending}
-          className="h-10 px-5 text-sm font-semibold rounded-lg border border-gray-900 bg-white text-gray-900 hover:bg-gray-900 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-busy={applyPromo.isPending}
+          className="h-10 px-5 shrink-0 min-w-[104px] inline-flex items-center justify-center gap-1.5 whitespace-nowrap text-sm font-semibold rounded-lg border border-gray-900 bg-white text-gray-900 hover:bg-gray-900 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {applyPromo.isPending ? "…" : "Apply"}
+          {applyPromo.isPending && (
+            <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+          )}
+          Apply
         </button>
       </form>
       {error && (

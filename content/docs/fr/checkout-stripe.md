@@ -1,5 +1,5 @@
 ---
-title: "Checkout — Stripe"
+title: "Checkout : Stripe"
 description: "Créer une session Stripe Checkout pour un panier. Support multi-marché, abonnements, taxe automatique et codes de réduction."
 ---
 

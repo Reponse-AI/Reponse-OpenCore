@@ -1,5 +1,5 @@
 ---
-title: "Cart — Apply Promotion"
+title: "Cart : Apply Promotion"
 description: "Applique un code promotion ou remise à un panier."
 ---
 

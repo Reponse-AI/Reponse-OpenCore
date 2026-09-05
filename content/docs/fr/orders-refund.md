@@ -1,5 +1,5 @@
 ---
-title: "Orders — Refund"
+title: "Orders : Refund"
 description: "Rembourse tout ou partie d'une commande."
 ---
 

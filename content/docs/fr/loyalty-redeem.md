@@ -1,5 +1,5 @@
 ---
-title: "Loyalty — Redeem"
+title: "Loyalty : Redeem"
 description: "Utilise les points fidélité d'un contact."
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Tickets — Create"
+title: "Tickets : Create"
 description: "Crée un ticket de support."
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Product Feed — JSON"
+title: "Product Feed : JSON"
 description: "Récupère le flux produits en JSON compatible ACP (gzippé)."
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Collections — Get"
+title: "Collections : Get"
 description: "Récupère une collection par son handle."
 ---
 

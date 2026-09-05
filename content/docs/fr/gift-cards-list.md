@@ -1,5 +1,5 @@
 ---
-title: "Gift Cards — List"
+title: "Gift Cards : List"
 description: "Liste les cartes cadeaux d'un workspace."
 ---
 

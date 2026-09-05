@@ -1,5 +1,5 @@
 ---
-title: "Approvals — Execute"
+title: "Approvals : Execute"
 description: "Exécute une approbation en attente (action human-in-the-loop)."
 ---
 

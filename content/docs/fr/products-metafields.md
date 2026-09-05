@@ -1,5 +1,5 @@
 ---
-title: "Products — Metafields"
+title: "Products : Metafields"
 description: "Métachamps produit et attributs étendus."
 ---
 

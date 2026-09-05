@@ -1,5 +1,5 @@
 ---
-title: "Orders — Create"
+title: "Orders : Create"
 description: "Créer une commande à partir d'un panier existant."
 ---
 

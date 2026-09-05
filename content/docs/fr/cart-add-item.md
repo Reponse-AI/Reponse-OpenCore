@@ -1,5 +1,5 @@
 ---
-title: "Cart — Add Item"
+title: "Cart : Add Item"
 description: "Ajoute un ou plusieurs articles à un panier existant."
 ---
 

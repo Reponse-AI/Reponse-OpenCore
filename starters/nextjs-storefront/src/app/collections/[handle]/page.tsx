@@ -292,6 +292,9 @@ export default async function CollectionPage({
                         price={price}
                         currency={currency}
                         disabled={!inStock}
+                        productTitle={title}
+                        productHandle={slug}
+                        productImage={images?.[0]}
                         compact
                       />
                     </div>

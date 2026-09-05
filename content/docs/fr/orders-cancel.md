@@ -1,5 +1,5 @@
 ---
-title: "Orders — Cancel"
+title: "Orders : Cancel"
 description: "Annuler une commande. Inclut des gardes : vérification d'identité, validation d'état, limitation de débit (1/heure, 3/30 jours) et prévention d'abus."
 ---
 

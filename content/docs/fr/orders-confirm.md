@@ -1,5 +1,5 @@
 ---
-title: "Orders — Confirm"
+title: "Orders : Confirm"
 description: "Confirme une commande après un PaymentIntent réussi."
 ---
 

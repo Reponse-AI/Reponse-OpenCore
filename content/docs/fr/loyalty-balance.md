@@ -1,5 +1,5 @@
 ---
-title: "Loyalty — Balance"
+title: "Loyalty : Balance"
 description: "Récupère le solde de points fidélité et le palier d'un contact."
 ---
 

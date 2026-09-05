@@ -21,6 +21,7 @@ import {
   optimisticallyAddItem,
   optimisticallyRemoveItem,
   optimisticallyUpdateItem,
+  withPreservedItemDisplay,
   type OptimisticAddInput,
 } from "@/lib/cart-optimistic";
 import { queryKeys } from "@/lib/api/query-keys";
@@ -44,6 +45,18 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+
+  /**
+   * Mutation responses are not enriched with product data, so keep the display
+   * metadata already held in the cache instead of letting the bare payload
+   * blank out every cart line's image and title.
+   */
+  const applyServerCart = (cart: CartSummary | null) => {
+    queryClient.setQueryData<CartSummary | null>(
+      queryKeys.cart.all,
+      (previous) => (cart ? withPreservedItemDisplay(previous, cart) : cart),
+    );
+  };
   const cartQuery = useQuery({
     queryKey: queryKeys.cart.all,
     queryFn: getCartSummary,
@@ -70,7 +83,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(queryKeys.cart.all, context?.previous ?? null);
     },
     onSuccess: (cart) => {
-      queryClient.setQueryData(queryKeys.cart.all, cart);
+      applyServerCart(cart);
+      // A line added for the first time has no cached display metadata, so pull
+      // the enriched cart once to fill in its image, title and variant.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
     },
   });
 
@@ -93,7 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(queryKeys.cart.all, context?.previous ?? null);
     },
     onSuccess: (cart) => {
-      queryClient.setQueryData(queryKeys.cart.all, cart);
+      applyServerCart(cart);
     },
   });
 
@@ -115,7 +131,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(queryKeys.cart.all, context?.previous ?? null);
     },
     onSuccess: (cart) => {
-      queryClient.setQueryData(queryKeys.cart.all, cart);
+      applyServerCart(cart);
     },
   });
 
