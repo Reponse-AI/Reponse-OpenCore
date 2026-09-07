@@ -72,6 +72,8 @@ In the Reponse dashboard, open [Settings › API keys](app:dashboard_settings) a
 | `read:conversations` | Feed the block on the customer page |
 | `write:integrations` | Record the link between your store and your workspace |
 
+A key created from Settings › API keys carries full access, so it covers all three without any extra configuration.
+
 Copy the key when it is created: it is shown only once.
 
 ### 3. Paste the key into the app

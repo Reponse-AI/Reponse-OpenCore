@@ -72,6 +72,8 @@ Dans le dashboard Reponse, ouvrez [Réglages › Clés API](app:dashboard_settin
 | `read:conversations` | Alimenter le bloc de la fiche client |
 | `write:integrations` | Enregistrer le lien entre votre boutique et votre workspace |
 
+Une clé créée depuis Réglages › Clés API porte l'accès complet : elle couvre ces trois portées sans réglage particulier.
+
 Copiez la clé au moment de sa création : elle n'est affichée qu'une fois.
 
 ### 3. Coller la clé dans l'application
