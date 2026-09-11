@@ -81,13 +81,13 @@ Endpoint: `POST /api/webhooks/email-inbound`
 |---|---|---|
 | Inbound email | Customer reply received | Create or append to support ticket |
 
-### Shopify order fulfillment (review requests)
+### Shopify fulfillments (review requests)
 
-Endpoint: `POST /api/webhooks/shopify/orders-fulfilled`
+The Reponse Shopify app subscribes `fulfillments/create` and `fulfillments/update` at `POST /api/shopify/webhooks/app`, one endpoint for every store, which finds the workspace from the `X-Shopify-Shop-Domain` header. A store still connected through a per-workspace webhook sends the same topics to `POST /api/shopify/webhooks/{workspaceId}` (envelope below). Both endpoints run the same handler. There is no separate review endpoint.
 
 | Event | Description | Reponse action |
 |---|---|---|
-| Order fulfilled | Shopify order marked as fulfilled | Create `review_request` for post-purchase review collection |
+| Fulfillment succeeded | A Shopify fulfillment reaches `success` (the goods have shipped) | Mark the order fulfilled and open one `review_request` per order for post-purchase review collection |
 
 ## Common payload envelope
 

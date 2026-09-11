@@ -168,7 +168,7 @@ Both providers retry on non-`2xx` responses. Make sure your handler returns `200
 
 ## Post-purchase review collection
 
-Reponse also supports **proactive** review collection via the `POST /api/webhooks/shopify/orders-fulfilled` endpoint. When a Shopify order is fulfilled, a `review_request` record is created with a unique token. This powers post-purchase review request emails.
+Reponse also collects reviews **proactively** after a purchase. There is no endpoint to call: the Reponse Shopify app subscribes to Shopify's `fulfillments/create` and `fulfillments/update` webhooks, and when a fulfillment reaches `success` (the goods have shipped), Reponse opens one `review_request` per order, with a unique token. The review request email is then sent, or not, by a scheduled job that applies the store's review settings (on/off, and how many days to wait before sending; a value of 0 currently falls back to the default delay) and the shopper's email consent. The link in that email leads to the review form.
 
 ## Best practices
 
